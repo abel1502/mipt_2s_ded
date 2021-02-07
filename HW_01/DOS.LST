@@ -1,0 +1,83 @@
+Turbo Assembler	 Version 4.1	    02/07/21 12:39:13	    Page 1
+dos.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3
+      4				     org 100h
+      5	0100			     Start:	     ;lea si, [Msg]
+      6	0100  A0 0000r				     mov al, Msg
+      7						     ;call DPrint
+      8
+      9	0103  B8 4C00				     mov ax, 4c00h
+     10	0106  CD 21				     int 21h
+     11
+     12
+     13				     ; void DPrint(esi:char *src)
+     14	0108			     DPrint	     proc near
+     15	0108  B4 02				     mov ah, 2h
+     16
+     17	010A			     DPrint_loop_start:
+     18	010A  8A 14				     mov dl, [si]
+     19	010C  84 D2				     test dl, dl
+     20	010E  74 05				     jz	DPrint_loop_end
+     21	0110  CD 21				     int 21h
+     22	0112  46				     inc si
+     23	0113  EB F5				     jmp DPrint_loop_start
+     24
+     25	0115			     DPrint_loop_end:
+     26	0115  C3				     ret
+     27	0116			     DPrint	     endp
+     28
+     29
+     30	0116			     .data
+     31
+     32	0000  54 68 69 73 20 70	72+  Msg	     db	'This program CAN (and should) be run in DOS mode', 0ah, 0dh, 00h
+     33	      6F 67 72 61 6D 20	43+
+     34	      41 4E 20 28 61 6E	64+
+     35	      20 73 68 6F 75 6C	64+
+     36	      29 20 62 65 20 72	75+
+     37	      6E 20 69 6E 20 44	4F+
+     38	      53 20 6D 6F 64 65	0A+
+     39	      0D 00
+     40
+     41
+     42				     End Start
+Turbo Assembler	 Version 4.1	    02/07/21 12:39:13	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/07/21"
+??FILENAME			  Text	 "dos	  "
+??TIME				  Text	 "12:39:12"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _DATA
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 DOS
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+DPRINT				  Near	 DGROUP:0108
+DPRINT_LOOP_END			  Near	 DGROUP:0115
+DPRINT_LOOP_START		  Near	 DGROUP:010A
+MSG				  Byte	 DGROUP:0000
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0033 Word	  Public  DATA
+  _TEXT				  16  0116 Word	  Public  CODE
+

@@ -1,0 +1,89 @@
+Turbo Assembler	 Version 4.1	    02/07/21 13:02:50	    Page 1
+bios.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3
+      4				     org 100h
+      5	0100  B8 0900		     Start:	     mov ax, 0900h
+      6	0103  BB 0004				     mov bx, 0004h
+      7	0106  B9 0050				     mov cx, 80	     ; I know I	could have done	that inside the	loop for every	    +
+      8				     character,	but that would slow it down a lot
+      9	0109  CD 10				     int 10h
+     10
+     11	010B  BE 0000r				     lea si, [Msg]
+     12	010E  E8 0005				     call BPrint
+     13
+     14	0111  B8 4C00				     mov ax, 4c00h
+     15	0114  CD 21				     int 21h
+     16
+     17
+     18				     ; void BPrint(esi:char *src)
+     19	0116			     BPrint	     proc near
+     20	0116  B4 0E				     mov ah, 0eh
+     21
+     22	0118			     BPrint_loop_start:
+     23	0118  8A 04				     mov al, [si]
+     24	011A  84 C0				     test al, al
+     25	011C  74 05				     jz	BPrint_loop_end
+     26	011E  CD 10				     int 10h
+     27	0120  46				     inc si
+     28	0121  EB F5				     jmp BPrint_loop_start
+     29
+     30	0123			     BPrint_loop_end:
+     31	0123  C3				     ret
+     32	0124			     BPrint	     endp
+     33
+     34
+     35
+     36	0124			     .data
+     37
+     38	0000  54 68 69 73 20 70	72+  Msg	     db	'This program works even in base BIOS. Crazy, right?', 0ah, 0dh, 00h
+     39	      6F 67 72 61 6D 20	77+
+     40	      6F 72 6B 73 20 65	76+
+     41	      65 6E 20 69 6E 20	62+
+     42	      61 73 65 20 42 49	4F+
+     43	      53 2E 20 43 72 61	7A+
+     44	      79 2C 20 72 69 67	68+
+     45	      74 3F 0A 0D 00
+     46
+     47
+     48				     end Start
+Turbo Assembler	 Version 4.1	    02/07/21 13:02:50	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/07/21"
+??FILENAME			  Text	 "bios	  "
+??TIME				  Text	 "13:02:50"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _DATA
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 BIOS
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+BPRINT				  Near	 DGROUP:0116
+BPRINT_LOOP_END			  Near	 DGROUP:0123
+BPRINT_LOOP_START		  Near	 DGROUP:0118
+MSG				  Byte	 DGROUP:0000
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0036 Word	  Public  DATA
+  _TEXT				  16  0124 Word	  Public  CODE
+
