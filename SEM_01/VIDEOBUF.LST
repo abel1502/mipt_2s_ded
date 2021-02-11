@@ -1,0 +1,110 @@
+Turbo Assembler	 Version 4.1	    02/08/21 15:33:58	    Page 1
+videobuf.asm
+
+
+
+      1	0000			     .model tiny
+      2				     .186
+      3	0000			     .code
+      4
+      5	      =004A		     SCREENWIDTH     equ 40h:4ah
+      6	      =B800		     VIDEOSEG	     equ 0b800h
+      7
+      8				     org 100h
+      9	0100  B1 41		     Start:	     mov cl, 'A'
+     10	0102  B5 04				     mov ch, 4
+     11	0104  BB 0804				     mov bx, 0804h
+     12	0107  E8 0005				     call SetChar
+     13
+     14						     ;jmp $
+     15
+     16	010A  B8 4C00				     mov ax, 4c00h
+     17	010D  CD 21				     int 21h
+     18
+     19
+     20				     ; void SetChar(cl:char letter, ch:	char attrs, bh:unsigned	row, bl:unsigned column)
+     21	010F			     SetChar	     proc near
+     22						     ;mov ax, 40h
+     23						     ;mov es, ax
+     24						     ;mov ax, es:004ah ;80 ;[SCREENWIDTH]
+     25	010F  B8 FFFE				     mov ax, far word ptr 0:[044ah]
+**Error** videobuf.asm(25) Extra characters on line
+     26	0112  F6 E7				     mul bh
+     27	0114  32 FF				     xor bh, bh
+     28	0116  03 D8				     add bx, ax
+     29	0118  D1 E3				     shl bx, 1
+     30
+     31	011A  BA B800				     mov dx, VIDEOSEG
+     32	011D  CD 11				     int 11h
+     33	011F  35 0030				     xor ax, 30h
+     34	0122  C1 E0 0B				     shl ax, 11
+     35	0125  0B C2				     or	ax, dx
+     36	0127  8E C0				     mov es, ax
+     37
+     38	0129  26: 89 0F				     mov es:[bx], cx
+     39
+     40	012C  C3				     ret
+     41	012D			     SetChar	     endp
+     42
+     43
+     44
+     45	012D			     .data
+     46
+     47	0000  54 68 69 73 20 70	72+  Msg	     db	'This program works even in bare BIOS. Crazy, right?', 00h
+     48	      6F 67 72 61 6D 20	77+
+     49	      6F 72 6B 73 20 65	76+
+     50	      65 6E 20 69 6E 20	62+
+     51	      61 72 65 20 42 49	4F+
+     52	      53 2E 20 43 72 61	7A+
+     53	      79 2C 20 72 69 67	68+
+     54	      74 3F 00
+     55
+     56
+Turbo Assembler	 Version 4.1	    02/08/21 15:33:58	    Page 2
+videobuf.asm
+
+
+
+     57				     end Start
+Turbo Assembler	 Version 4.1	    02/08/21 15:33:58	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/08/21"
+??FILENAME			  Text	 "videobuf"
+??TIME				  Text	 "15:33:58"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0103H
+@CURSEG				  Text	 _DATA
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 VIDEOBUF
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+MSG				  Byte	 DGROUP:0000
+SCREENWIDTH			  Number 004A
+SETCHAR				  Near	 DGROUP:010F
+START				  Near	 DGROUP:0100
+VIDEOSEG			  Number B800
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0034 Word	  Public  DATA
+  _TEXT				  16  012D Word	  Public  CODE
+Turbo Assembler	 Version 4.1	    02/08/21 15:33:58	    Page 4
+Error Summary
+
+
+
+**Error** videobuf.asm(25) Extra characters on line
+

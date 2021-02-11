@@ -1,6 +1,8 @@
 .model tiny
 .code
 
+VIDEOSEG	equ 0b800h
+
 org 100h
 Start:		lea si, [Msg]
 		mov bx, 0804h
@@ -20,7 +22,7 @@ RPrint 		proc near
 		add bx, ax
 		shl bx, 1
 		
-		mov cx, 0b800h
+		mov cx, VIDEOSEG
 		int 11h
 		xor ax, 30h
 		shl ax, 11

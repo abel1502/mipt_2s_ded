@@ -1,0 +1,61 @@
+Turbo Assembler	 Version 4.1	    02/08/21 14:01:18	    Page 1
+zerodiv.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3
+      4				     org 100h
+      5	0100  CD 00		     Start:	     int 0h
+      6
+      7	0102  B0 7B				     mov al, 123
+      8	0104  B4 00				     mov ah, 0
+      9	0106  F6 F4				     div ah
+     10
+     11	0108  B4 09				     mov ah, 09h
+     12	010A  BA 0000r				     mov dx, offset Msg
+     13	010D  CD 21				     int 21h
+     14
+     15	010F  B8 4C00				     mov ax, 4c00h
+     16	0112  CD 21				     int 21h
+     17
+     18	0114			     .data
+     19
+     20	0000  4E 6F 70 65 2E 0A	0D+  Msg:	     db	'Nope.', 0ah, 0dh, '$'
+     21	      24
+     22
+     23				     End Start
+Turbo Assembler	 Version 4.1	    02/08/21 14:01:18	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/08/21"
+??FILENAME			  Text	 "zerodiv "
+??TIME				  Text	 "14:01:18"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _DATA
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 ZERODIV
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+MSG				  Near	 DGROUP:0000
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0008 Word	  Public  DATA
+  _TEXT				  16  0114 Word	  Public  CODE
+
