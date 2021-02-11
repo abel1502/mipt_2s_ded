@@ -28,10 +28,13 @@ Main_loop:	test ax, ax
 		dec bl
 		inc ch
 		inc cl
-		
 		dec ax
 		jmp Main_loop
 Main_loop_end:
+		
+		add bh, 3
+		add bl, 5
+		call DrawCmd
 		
 		mov bx, 2000
 		mov cx, 8
@@ -263,6 +266,7 @@ Beep_pause2:	dec cx
 Beep		endp
 
 
+; TODO: Maybe use the interrupt?
 ; void Sleep(ax: duration)
 Sleep		proc near
 		
@@ -273,6 +277,52 @@ Sleep_loop:	test ax, ax
 Sleep_loop_end:
 		ret
 Sleep		endp
+
+
+; void DrawCmd(bh: row, bl:column)
+DrawCmd		proc near
+DrawCmd_i	equ [bp-1]
+DrawCmd_origCol	equ [bp-2]
+		push bp
+		mov bp, sp
+		sub sp, 2
+		
+		mov DrawCmd_origCol, bl
+		mov al, ds:80h
+		mov DrawCmd_i, al
+		mov si, 81h
+		
+DrawCmd_loop:	mov al, DrawCmd_i
+		test al, al
+		jz DrawCmd_loop_end
+		
+		mov cl, [si]
+		xor cl, '$'
+		je DrawCmd_nl
+		xor cl, '$'
+		
+		mov ch, 4h
+		push bx
+		call SetChar
+		pop bx
+		
+		inc bl
+		
+		jmp DrawCmd_nl_skip
+		
+DrawCmd_nl:	mov bl, DrawCmd_origCol
+		inc bh
+		
+DrawCmd_nl_skip:
+		inc si
+		dec word ptr DrawCmd_i
+		jmp DrawCmd_loop
+DrawCmd_loop_end:
+		
+		mov sp, bp
+		pop bp
+		ret
+DrawCmd		endp
 
 
 .data
