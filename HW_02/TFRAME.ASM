@@ -39,60 +39,59 @@ Main_loop:	test ax, ax
 		jmp Main_loop
 Main_loop_end:
 		
-		mov ax, 3802
+		; mov ax, 3802
 		add bh, 3
 		add bl, 5
-		;call DrawCmd
+		call DrawCmd
 		
-		push ax
-		push bx
-		call DrawNum10
+		; push ax
+		; push bx
+		; call DrawNum10
 		
-		pop bx
-		push bx
-		mov cl, 'd'
-		mov ch, (FrameStyle AND 11110000b) OR 0100b
-		call SetChar
+		; pop bx
+		; push bx
+		; mov cl, 'd'
+		; mov ch, (FrameStyle AND 11110000b) OR 0100b
+		; call SetChar
 		
-		pop bx
-		pop ax
-		inc bh
-		push ax
-		push bx
-		call DrawNumL1
+		; pop bx
+		; pop ax
+		; inc bh
+		; push ax
+		; push bx
+		; call DrawNumL1
 		
-		pop bx
-		push bx
-		mov cl, 'b'
-		mov ch, (FrameStyle AND 11110000b) OR 0100b
-		call SetChar
+		; pop bx
+		; push bx
+		; mov cl, 'b'
+		; mov ch, (FrameStyle AND 11110000b) OR 0100b
+		; call SetChar
 		
-		pop bx
-		pop ax
-		inc bh
-		push ax
-		push bx
-		call DrawNumL3
+		; pop bx
+		; pop ax
+		; inc bh
+		; push ax
+		; push bx
+		; call DrawNumL3
 		
-		pop bx
-		push bx
-		mov cl, 'o'
-		mov ch, (FrameStyle AND 11110000b) OR 0100b
-		call SetChar
+		; pop bx
+		; push bx
+		; mov cl, 'o'
+		; mov ch, (FrameStyle AND 11110000b) OR 0100b
+		; call SetChar
 		
-		pop bx
-		pop ax
-		inc bh
-		push ax
-		push bx
-		call DrawNumL4
+		; pop bx
+		; pop ax
+		; inc bh
+		; push ax
+		; push bx
+		; call DrawNumL4
 		
-		pop bx
-		push bx
-		mov cl, 'x'
-		mov ch, (FrameStyle AND 11110000b) OR 0100b
-		call SetChar
-		
+		; pop bx
+		; push bx
+		; mov cl, 'x'
+		; mov ch, (FrameStyle AND 11110000b) OR 0100b
+		; call SetChar
 		
 		mov bx, 2000
 		mov cx, 8
@@ -396,7 +395,7 @@ DrawCmd_nl:	mov bl, DrawCmd_origCol
 		
 DrawCmd_nl_skip:
 		inc si
-		dec word ptr DrawCmd_i
+		dec byte ptr DrawCmd_i
 		jmp DrawCmd_loop
 DrawCmd_loop_end:
 		
@@ -406,93 +405,93 @@ DrawCmd_loop_end:
 DrawCmd		endp
 
 
-; void DrawNum10(ax: num, bh: row, bl: column)
-; uses ax, bx, cx, dx, SetChar
-DrawNum10	proc near
-		;add bl, 5
-		add bl, 17
+; ; void DrawNum10(ax: num, bh: row, bl: column)
+; ; uses ax, bx, cx, dx, SetChar
+; DrawNum10	proc near
+		; ;add bl, 5
+		; add bl, 17
 		
-DrawNum10_loop:	test ax, ax
-		jz DrawNum10_loop_end
+; DrawNum10_loop:	test ax, ax
+		; jz DrawNum10_loop_end
 		
-		;aam  ; This is faster than division and more convenient, although relies on ax being small enough
-		mov cl, 10
-		xor ch, ch
-		xor dx, dx
-		div cx
+		; ;aam  ; This is faster than division and more convenient, although relies on ax being small enough
+		; mov cl, 10
+		; xor ch, ch
+		; xor dx, dx
+		; div cx
 		
-		add dl, '0'
-		mov cl, dl
-		mov ch, (FrameStyle AND 11110000b) OR 0100b
+		; add dl, '0'
+		; mov cl, dl
+		; mov ch, (FrameStyle AND 11110000b) OR 0100b
 		
-		push ax
-		push bx
+		; push ax
+		; push bx
 		
-		call SetChar
+		; call SetChar
 		
-		pop bx
-		pop ax
+		; pop bx
+		; pop ax
 		
-		dec bl
-		jmp DrawNum10_loop
-DrawNum10_loop_end:
+		; dec bl
+		; jmp DrawNum10_loop
+; DrawNum10_loop_end:
 
-		ret
-DrawNum10	endp
-
-
-; macro(base)
-; void DrawNumL&base(ax: num, bh: row, bl: column)
-; uses ax, bx, cx, SetChar
-DrawNumLB	macro base
-		
-DrawNumL&base	proc near
-		;add bl, base
-		add bl, 17
-		
-DrawNumL&base&_loop:
-		test ax, ax
-		jz DrawNumL&base&_loop_end
-		
-		mov cl, al
-		and cl, (1 SHL base) - 1
-		
-		cmp cl, 10
-		jae DrawNumL&base&_bigDigit
-		
-		add cl, '0'
-		
-		jmp DrawNumL&base&_notBigDigit
-DrawNumL&base&_bigDigit:
-		add cl, 'A'-10
-DrawNumL&base&_notBigDigit:
-		
-		mov ch, (FrameStyle AND 11110000b) OR 0100b
-		
-		shr ax, base
-		
-		push ax
-		push bx
-		
-		call SetChar
-		
-		pop bx
-		pop ax
-		
-		dec bl
-		jmp DrawNumL&base&_loop
-DrawNumL&base&_loop_end:
-
-		ret
-DrawNumL&base&	endp
-		
-		endm
+		; ret
+; DrawNum10	endp
 
 
+; ; macro(base)
+; ; void DrawNumL&base(ax: num, bh: row, bl: column)
+; ; uses ax, bx, cx, SetChar
+; DrawNumLB	macro base
+		
+; DrawNumL&base	proc near
+		; ;add bl, base
+		; add bl, 17
+		
+; DrawNumL&base&_loop:
+		; test ax, ax
+		; jz DrawNumL&base&_loop_end
+		
+		; mov cl, al
+		; and cl, (1 SHL base) - 1
+		
+		; cmp cl, 10
+		; jae DrawNumL&base&_bigDigit
+		
+		; add cl, '0'
+		
+		; jmp DrawNumL&base&_notBigDigit
+; DrawNumL&base&_bigDigit:
+		; add cl, 'A'-10
+; DrawNumL&base&_notBigDigit:
+		
+		; mov ch, (FrameStyle AND 11110000b) OR 0100b
+		
+		; shr ax, base
+		
+		; push ax
+		; push bx
+		
+		; call SetChar
+		
+		; pop bx
+		; pop ax
+		
+		; dec bl
+		; jmp DrawNumL&base&_loop
+; DrawNumL&base&_loop_end:
 
-DrawNumLB	1 ;2
-DrawNumLB	3 ;3
-DrawNumLB	4 ;4
+		; ret
+; DrawNumL&base&	endp
+		
+		; endm
+
+
+
+; DrawNumLB	1 ;2
+; DrawNumLB	3 ;3
+; DrawNumLB	4 ;4
 
 
 .data
