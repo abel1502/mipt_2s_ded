@@ -1,11 +1,18 @@
 .model tiny
-.186
+.286
 .code
 
 VIDEOSEG	equ 0b800h
+FrameStyle	equ 00011111b
 
 org 100h
-Start:		mov ax, 8h
+Start:		mov ax, 0600h
+		mov cx, 0000h
+		mov dx, 0ffffh
+		mov bh, 00111111b
+		int 10h
+		
+		mov ax, 7h
 		mov bx, 0909h
 		mov cx, 0F46h
 		
@@ -32,9 +39,60 @@ Main_loop:	test ax, ax
 		jmp Main_loop
 Main_loop_end:
 		
+		mov ax, 3802
 		add bh, 3
 		add bl, 5
-		call DrawCmd
+		;call DrawCmd
+		
+		push ax
+		push bx
+		call DrawNum10
+		
+		pop bx
+		push bx
+		mov cl, 'd'
+		mov ch, (FrameStyle AND 11110000b) OR 0100b
+		call SetChar
+		
+		pop bx
+		pop ax
+		inc bh
+		push ax
+		push bx
+		call DrawNumL1
+		
+		pop bx
+		push bx
+		mov cl, 'b'
+		mov ch, (FrameStyle AND 11110000b) OR 0100b
+		call SetChar
+		
+		pop bx
+		pop ax
+		inc bh
+		push ax
+		push bx
+		call DrawNumL3
+		
+		pop bx
+		push bx
+		mov cl, 'o'
+		mov ch, (FrameStyle AND 11110000b) OR 0100b
+		call SetChar
+		
+		pop bx
+		pop ax
+		inc bh
+		push ax
+		push bx
+		call DrawNumL4
+		
+		pop bx
+		push bx
+		mov cl, 'x'
+		mov ch, (FrameStyle AND 11110000b) OR 0100b
+		call SetChar
+		
 		
 		mov bx, 2000
 		mov cx, 8
@@ -51,11 +109,18 @@ Pause_loop:	test bx, bx
 		jmp Pause_loop
 Pause_loop_end:
 		
+		mov ax, 0600h
+		mov cx, 0000h
+		mov dx, 0ffffh
+		mov bh, 7h
+		int 10h
+		
 		mov ax, 4c00h
 		int 21h
 
 
 ; void DrawFrame(bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
+; uses ax, ab, cx, dx, di, SetChar
 DrawFrame	proc near
 
 DrawFrame_fromRow	equ [bp-1]
@@ -72,34 +137,45 @@ DrawFrame_toCol		equ [bp-4]
 		mov DrawFrame_toRow, ch
 		mov DrawFrame_toCol, cl
 		
-		;mov ax, ' '
-		;call FillRect
-		; There's a swifter way to achieve this
 		mov ax, 0600h
 		mov dx, cx
 		mov cx, bx
-		mov bh, 7h
+		inc cl
+		inc ch
+		inc dl
+		inc dh
+		mov bh, 00001111b
 		int 10h
 		
-		mov ch, 15
+		;mov ax, ' '
+		;call FillRect
+		; There's a swifter way to achieve this
+		dec cl
+		dec ch
+		dec dl
+		dec dh
+		mov bh, FrameStyle
+		int 10h
+		
+		mov ch, FrameStyle
 		mov cl, 201
 		mov bh, DrawFrame_fromRow
 		mov bl, DrawFrame_fromCol
 		call SetChar
 		
-		mov ch, 15
+		mov ch, FrameStyle
 		mov cl, 187
 		mov bh, DrawFrame_fromRow
 		mov bl, DrawFrame_toCol
 		call SetChar
 		
-		mov ch, 15
+		mov ch, FrameStyle
 		mov cl, 188
 		mov bh, DrawFrame_toRow
 		mov bl, DrawFrame_toCol
 		call SetChar
 		
-		mov ch, 15
+		mov ch, FrameStyle
 		mov cl, 200
 		mov bh, DrawFrame_toRow
 		mov bl, DrawFrame_fromCol
@@ -116,13 +192,13 @@ DrawFrame_loopH:
 		cmp di, ax
 		jae DrawFrame_loopH_end
 		
-		mov ch, 15
+		mov ch, FrameStyle
 		mov cl, 205
 		mov bx, di
 		mov bh, DrawFrame_fromRow
 		call SetChar
 		
-		mov ch, 15
+		mov ch, FrameStyle  ; TODO: Encapsulate as framestyle
 		mov cl, 205
 		mov bx, di
 		mov bh, DrawFrame_toRow
@@ -143,14 +219,14 @@ DrawFrame_loopV:
 		cmp di, ax
 		jae DrawFrame_loopV_end
 		
-		mov ch, 15
+		mov ch, FrameStyle
 		mov cl, 186
 		mov bx, di
 		shl bx, 8
 		mov bl, DrawFrame_fromCol
 		call SetChar
 		
-		mov ch, 15
+		mov ch, FrameStyle
 		mov cl, 186
 		mov bx, di
 		shl bx, 8
@@ -169,6 +245,7 @@ DrawFrame	endp
 
 
 ; void FillRect(ax: symb, bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
+; uses ax, bx, cx, SetChar
 FillRect	proc near
 FillRect_fromRow	equ [bp-1]
 FillRect_fromCol	equ [bp-2]
@@ -217,6 +294,7 @@ FillRect	endp
 
 
 ; void SetChar(cl: letter, ch: attrs, bh: row, bl: column)
+; uses: ax, bx, cx, dx, es
 SetChar		proc near
 		mov ax, 40h
 		mov es, ax
@@ -240,6 +318,7 @@ SetChar		endp
 
 
 ; void Beep(bx: frequency, cx: length)
+; uses ax, bx, cx
 Beep		proc near
 		mov al, 182
 		out 43h, al
@@ -266,8 +345,9 @@ Beep_pause2:	dec cx
 Beep		endp
 
 
-; TODO: Maybe use the interrupt?
+; TODO: Maybe use the int 15h 81h
 ; void Sleep(ax: duration)
+; uses ax
 Sleep		proc near
 		
 Sleep_loop:	test ax, ax
@@ -279,7 +359,8 @@ Sleep_loop_end:
 Sleep		endp
 
 
-; void DrawCmd(bh: row, bl:column)
+; void DrawCmd(bh: row, bl: column)
+; uses ax, bx, cx, si, SetChar
 DrawCmd		proc near
 DrawCmd_i	equ [bp-1]
 DrawCmd_origCol	equ [bp-2]
@@ -301,7 +382,7 @@ DrawCmd_loop:	mov al, DrawCmd_i
 		je DrawCmd_nl
 		xor cl, '$'
 		
-		mov ch, 4h
+		mov ch, (FrameStyle AND 11110000b) OR 0100b
 		push bx
 		call SetChar
 		pop bx
@@ -319,10 +400,97 @@ DrawCmd_nl_skip:
 		jmp DrawCmd_loop
 DrawCmd_loop_end:
 		
-		mov sp, bp
-		pop bp
 		ret
 DrawCmd		endp
+
+
+; void DrawNum10(ax: num, bh: row, bl: column)
+; uses ax, bx, cx, dx, SetChar
+DrawNum10	proc near
+		;add bl, 5
+		add bl, 17
+		
+DrawNum10_loop:	test ax, ax
+		jz DrawNum10_loop_end
+		
+		;aam  ; This is faster than division and more convenient, although relies on ax being small enough
+		mov cl, 10
+		xor ch, ch
+		xor dx, dx
+		div cx
+		
+		add dl, '0'
+		mov cl, dl
+		mov ch, (FrameStyle AND 11110000b) OR 0100b
+		
+		push ax
+		push bx
+		
+		call SetChar
+		
+		pop bx
+		pop ax
+		
+		dec bl
+		jmp DrawNum10_loop
+DrawNum10_loop_end:
+
+		ret
+DrawNum10	endp
+
+
+; macro(base)
+; void DrawNumL&base(ax: num, bh: row, bl: column)
+; uses ax, bx, cx, SetChar
+DrawNumLB	macro base
+		
+DrawNumL&base	proc near
+		;add bl, base
+		add bl, 17
+		
+DrawNumL&base&_loop:
+		test ax, ax
+		jz DrawNumL&base&_loop_end
+		
+		mov cl, al
+		and cl, (1 SHL base) - 1
+		
+		cmp cl, 10
+		jae DrawNumL&base&_bigDigit
+		
+		add cl, '0'
+		
+		jmp DrawNumL&base&_notBigDigit
+DrawNumL&base&_bigDigit:
+		add cl, 'A'-10
+DrawNumL&base&_notBigDigit:
+		
+		mov ch, (FrameStyle AND 11110000b) OR 0100b
+		
+		shr ax, base
+		
+		push ax
+		push bx
+		
+		call SetChar
+		
+		pop bx
+		pop ax
+		
+		dec bl
+		jmp DrawNumL&base&_loop
+DrawNumL&base&_loop_end:
+
+		ret
+DrawNumL&base&	endp
+		
+		endm
+
+
+
+DrawNumLB	1 ;2
+DrawNumLB	3 ;3
+DrawNumLB	4 ;4
 
 
 .data
