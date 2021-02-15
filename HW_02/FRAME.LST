@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 1
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 1
 frame.asm
 
 
@@ -11,7 +11,7 @@ frame.asm
       6	      =001F		     FrameStyle	     equ 00011111b
       7
       8				     org 100h
-      9	0100  E8 01B2		     Start:	     call SetCharInit
+      9	0100  E8 01EB		     Start:	     call SetCharInit
      10
      11
      12	0103  B8 0600				     mov ax, 0600h
@@ -35,7 +35,7 @@ frame.asm
      30	0124  5B				     pop bx
      31
      32	0125  B8 2710				     mov ax, 10000
-     33	0128  E8 01E0				     call Sleep
+     33	0128  E8 022D				     call Sleep
      34
      35	012B  58				     pop ax
      36
@@ -54,75 +54,75 @@ frame.asm
      49
      50	0140  50				     push ax
      51	0141  53				     push bx
-     52	0142  E8 020C				     call DrawNum10
+     52	0142  E8 0259				     call DrawNum10
      53
      54	0145  5B				     pop bx
      55	0146  53				     push bx
      56	0147  B1 64				     mov cl, 'd'
      57	0149  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 2
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 2
 frame.asm
 
 
 
-     58	014B  E8 0181				     call SetChar
+     58	014B  E8 01C8				     call SetChar
      59
      60	014E  5B				     pop bx
      61	014F  58				     pop ax
      62	0150  FE C7				     inc bh
      63	0152  50				     push ax
      64	0153  53				     push bx
-     65	0154  E8 021C				     call DrawNumL1
+     65	0154  E8 0269				     call DrawNumL1
      66
      67	0157  5B				     pop bx
      68	0158  53				     push bx
      69	0159  B1 62				     mov cl, 'b'
      70	015B  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-     71	015D  E8 016F				     call SetChar
+     71	015D  E8 01B6				     call SetChar
      72
      73	0160  5B				     pop bx
      74	0161  58				     pop ax
      75	0162  FE C7				     inc bh
      76	0164  50				     push ax
      77	0165  53				     push bx
-     78	0166  E8 0234				     call DrawNumL3
+     78	0166  E8 0281				     call DrawNumL3
      79
      80	0169  5B				     pop bx
      81	016A  53				     push bx
      82	016B  B1 6F				     mov cl, 'o'
      83	016D  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-     84	016F  E8 015D				     call SetChar
+     84	016F  E8 01A4				     call SetChar
      85
      86	0172  5B				     pop bx
      87	0173  58				     pop ax
      88	0174  FE C7				     inc bh
      89	0176  50				     push ax
      90	0177  53				     push bx
-     91	0178  E8 024D				     call DrawNumL4
+     91	0178  E8 029A				     call DrawNumL4
      92
      93	017B  5B				     pop bx
      94	017C  53				     push bx
      95	017D  B1 78				     mov cl, 'x'
      96	017F  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-     97	0181  E8 014B				     call SetChar
+     97	0181  E8 0192				     call SetChar
      98
      99
     100	0184  BB 07D0				     mov bx, 2000
     101	0187  B9 0008				     mov cx, 8
-    102	018A  E8 015A				     call Beep
+    102	018A  E8 01A7				     call Beep
     103
     104	018D  BB 0064				     mov bx, 100
     105	0190  85 DB		     Pause_loop:     test bx, bx
     106	0192  74 09				     jz	Pause_loop_end
     107
     108	0194  B8 FFFF				     mov ax, 0FFFFh
-    109	0197  E8 0171				     call Sleep
+    109	0197  E8 01BE				     call Sleep
     110
     111	019A  4B				     dec bx
     112	019B  EB F3				     jmp Pause_loop
     113	019D			     Pause_loop_end:
     114
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 3
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 3
 frame.asm
 
 
@@ -137,570 +137,653 @@ frame.asm
     122	01AD  CD 21				     int 21h
     123
     124
-    125				     ; void DrawFrame(bh: fromRow, bl: fromCol,	ch: toRow, cl: toCol)
-    126				     ; uses ax,	ab, cx,	dx, di,	SetChar
-    127	01AF			     DrawFrame	     proc near
+    125				     ; Same as Coords2Key, but embeddable
+    126				     ; macro(result (register letter, can't be d), coords (register letter, can't be d))
+    127				     Coords2KeyM     macro result, coords
     128
-    129	      =	[bp-1]		     DrawFrame_fromRow	     equ [bp-1]
-    130	      =	[bp-2]		     DrawFrame_fromCol	     equ [bp-2]
-    131	      =	[bp-3]		     DrawFrame_toRow	     equ [bp-3]
-    132	      =	[bp-4]		     DrawFrame_toCol	     equ [bp-4]
-    133
-    134	01AF  55				     push bp
-    135	01B0  8B EC				     mov bp, sp
-    136	01B2  83 EC 04				     sub sp, 4
+    129						     mov result&x, SetChar_width
+    130						     mul coords&h
+    131						     xor coords&h, coords&h
+    132						     add result&l, coords&l
+    133						     adc result&h, 0
+    134						     shl result&x, 1
+    135
+    136						     endm
     137
-    138	01B5  88 7E FF				     mov DrawFrame_fromRow, bh
-    139	01B8  88 5E FE				     mov DrawFrame_fromCol, bl
-    140	01BB  88 6E FD				     mov DrawFrame_toRow, ch
-    141	01BE  88 4E FC				     mov DrawFrame_toCol, cl
+    138
+    139				     ; void DrawFrame(bh: fromRow, bl: fromCol,	ch: toRow, cl: toCol)
+    140				     ; uses ax,	ab, cx,	dx, di,	SetChar
+    141	01AF			     DrawFrame	     proc near
     142
-    143	01C1  B8 0600				     mov ax, 0600h
-    144	01C4  8B D1				     mov dx, cx
-    145	01C6  8B CB				     mov cx, bx
-    146	01C8  FE C1				     inc cl
-    147	01CA  FE C5				     inc ch
-    148	01CC  FE C2				     inc dl
-    149	01CE  FE C6				     inc dh
-    150	01D0  B7 0F				     mov bh, 00001111b
-    151	01D2  CD 10				     int 10h
-    152
-    153						     ;mov ax, '	'
-    154						     ;call FillRect
-    155						     ; There's a swifter way to	achieve	this
-    156	01D4  FE C9				     dec cl
-    157	01D6  FE CD				     dec ch
-    158	01D8  FE CA				     dec dl
-    159	01DA  FE CE				     dec dh
-    160	01DC  B7 1F				     mov bh, FrameStyle
-    161	01DE  CD 10				     int 10h
-    162
-    163	01E0  B5 1F				     mov ch, FrameStyle
-    164	01E2  B1 C9				     mov cl, 201
-    165	01E4  8A 7E FF				     mov bh, DrawFrame_fromRow
-    166	01E7  8A 5E FE				     mov bl, DrawFrame_fromCol
-    167	01EA  E8 00E2				     call SetChar
-    168
-    169	01ED  B5 1F				     mov ch, FrameStyle
-    170	01EF  B1 BB				     mov cl, 187
-    171	01F1  8A 7E FF				     mov bh, DrawFrame_fromRow
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 4
+    143	      =	[bp-1]		     DrawFrame_fromRow	     equ [bp-1]
+    144	      =	[bp-2]		     DrawFrame_fromCol	     equ [bp-2]
+    145	      =	[bp-3]		     DrawFrame_toRow	     equ [bp-3]
+    146	      =	[bp-4]		     DrawFrame_toCol	     equ [bp-4]
+    147
+    148	01AF  55				     push bp
+    149	01B0  8B EC				     mov bp, sp
+    150	01B2  83 EC 04				     sub sp, 4
+    151
+    152	01B5  88 7E FF				     mov DrawFrame_fromRow, bh
+    153	01B8  88 5E FE				     mov DrawFrame_fromCol, bl
+    154	01BB  88 6E FD				     mov DrawFrame_toRow, ch
+    155	01BE  88 4E FC				     mov DrawFrame_toCol, cl
+    156
+    157	01C1  B8 0600				     mov ax, 0600h
+    158	01C4  8B D1				     mov dx, cx
+    159	01C6  8B CB				     mov cx, bx
+    160	01C8  FE C1				     inc cl
+    161	01CA  FE C5				     inc ch
+    162	01CC  FE C2				     inc dl
+    163	01CE  FE C6				     inc dh
+    164	01D0  B7 0F				     mov bh, 00001111b
+    165	01D2  CD 10				     int 10h
+    166
+    167						     ;mov ax, '	'
+    168						     ;call FillRect
+    169						     ; There's a swifter way to	achieve	this
+    170	01D4  FE C9				     dec cl
+    171	01D6  FE CD				     dec ch
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 4
 frame.asm
 
 
 
-    172	01F4  8A 5E FC				     mov bl, DrawFrame_toCol
-    173	01F7  E8 00D5				     call SetChar
-    174
-    175	01FA  B5 1F				     mov ch, FrameStyle
-    176	01FC  B1 BC				     mov cl, 188
-    177	01FE  8A 7E FD				     mov bh, DrawFrame_toRow
-    178	0201  8A 5E FC				     mov bl, DrawFrame_toCol
-    179	0204  E8 00C8				     call SetChar
-    180
-    181	0207  B5 1F				     mov ch, FrameStyle
-    182	0209  B1 C8				     mov cl, 200
-    183	020B  8A 7E FD				     mov bh, DrawFrame_toRow
-    184	020E  8A 5E FE				     mov bl, DrawFrame_fromCol
-    185	0211  E8 00BB				     call SetChar
-    186
-    187	0214  8A 46 FE				     mov al, DrawFrame_fromCol
-    188	0217  32 E4				     xor ah, ah
-    189	0219  8B F8				     mov di, ax
-    190	021B  47				     inc di
-    191
-    192	021C			     DrawFrame_loopH:
-    193	021C  8A 46 FC				     mov al, DrawFrame_toCol
-    194	021F  32 E4				     xor ah, ah
-    195	0221  3B F8				     cmp di, ax
-    196	0223  73 1B				     jae DrawFrame_loopH_end
-    197
-    198	0225  B5 1F				     mov ch, FrameStyle
-    199	0227  B1 CD				     mov cl, 205
-    200	0229  8B DF				     mov bx, di
-    201	022B  8A 7E FF				     mov bh, DrawFrame_fromRow
-    202	022E  E8 009E				     call SetChar
-    203
-    204	0231  B5 1F				     mov ch, FrameStyle	 ; TODO: Encapsulate as	framestyle
-    205	0233  B1 CD				     mov cl, 205
-    206	0235  8B DF				     mov bx, di
-    207	0237  8A 7E FD				     mov bh, DrawFrame_toRow
-    208	023A  E8 0092				     call SetChar
-    209
-    210	023D  47				     inc di
-    211	023E  EB DC				     jmp DrawFrame_loopH
-    212	0240			     DrawFrame_loopH_end:
-    213
-    214	0240  8A 46 FF				     mov al, DrawFrame_fromRow
-    215	0243  32 E4				     xor ah, ah
-    216	0245  8B F8				     mov di, ax
-    217	0247  47				     inc di
-    218
-    219	0248			     DrawFrame_loopV:
-    220	0248  8A 46 FD				     mov al, DrawFrame_toRow
-    221	024B  32 E4				     xor ah, ah
-    222	024D  3B F8				     cmp di, ax
-    223	024F  73 21				     jae DrawFrame_loopV_end
+    172	01D8  FE CA				     dec dl
+    173	01DA  FE CE				     dec dh
+    174	01DC  B7 1F				     mov bh, FrameStyle
+    175	01DE  CD 10				     int 10h
+    176
+    177	01E0  B5 1F				     mov ch, FrameStyle
+    178	01E2  B1 C9				     mov cl, 201
+    179	01E4  8A 7E FF				     mov bh, DrawFrame_fromRow
+    180	01E7  8A 5E FE				     mov bl, DrawFrame_fromCol
+    181	01EA  E8 0129				     call SetChar
+    182
+    183	01ED  B5 1F				     mov ch, FrameStyle
+    184	01EF  B1 BB				     mov cl, 187
+    185	01F1  8A 7E FF				     mov bh, DrawFrame_fromRow
+    186	01F4  8A 5E FC				     mov bl, DrawFrame_toCol
+    187	01F7  E8 011C				     call SetChar
+    188
+    189	01FA  B5 1F				     mov ch, FrameStyle
+    190	01FC  B1 BC				     mov cl, 188
+    191	01FE  8A 7E FD				     mov bh, DrawFrame_toRow
+    192	0201  8A 5E FC				     mov bl, DrawFrame_toCol
+    193	0204  E8 010F				     call SetChar
+    194
+    195	0207  B5 1F				     mov ch, FrameStyle
+    196	0209  B1 C8				     mov cl, 200
+    197	020B  8A 7E FD				     mov bh, DrawFrame_toRow
+    198	020E  8A 5E FE				     mov bl, DrawFrame_fromCol
+    199	0211  E8 0102				     call SetChar
+    200
+    201
+    202						     ; es is already set by SetChar
+    203	0214  32 ED				     xor ch, ch
+    204
+    205	0216  8A 4E FC				     mov cl, DrawFrame_toCol
+    206	0219  2A 4E FE				     sub cl, DrawFrame_fromCol
+    207	021C  FE C9				     dec cl
+    208	021E  F6 C1 80				     test cl, 1	SHL 7
+    209	0221  75 42				     jnz DrawFrame_loopH_end
+    210
+    211	0223  8A 5E FE				     mov bl, DrawFrame_fromCol
+    212	0226  8A 7E FF				     mov bh, DrawFrame_fromRow
+    213						     Coords2KeyM a, b
+1   214
+1   215	0229  A1 0330r				     mov ax, SetChar_width
+1   216	022C  F6 E7				     mul bh
+1   217	022E  32 FF				     xor bh, bh
+1   218	0230  02 C3				     add al, bl
+1   219	0232  80 D4 00				     adc ah, 0
+1   220	0235  D1 E0				     shl ax, 1
+1   221
+    222	0237  40				     inc ax
+    223	0238  8B F8				     mov di, ax
     224
-    225	0251  B5 1F				     mov ch, FrameStyle
-    226	0253  B1 BA				     mov cl, 186
-    227	0255  8B DF				     mov bx, di
-    228	0257  C1 E3 08				     shl bx, 8
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 5
+    225	023A  B4 CD				     mov ah, 205
+    226	023C  B0 1F				     mov al, FrameStyle
+    227
+    228	023E  F3> AB				     rep stosw
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 5
 frame.asm
 
 
 
-    229	025A  8A 5E FE				     mov bl, DrawFrame_fromCol
-    230	025D  E8 006F				     call SetChar
-    231
-    232	0260  B5 1F				     mov ch, FrameStyle
-    233	0262  B1 BA				     mov cl, 186
-    234	0264  8B DF				     mov bx, di
-    235	0266  C1 E3 08				     shl bx, 8
-    236	0269  8A 5E FC				     mov bl, DrawFrame_toCol
-    237	026C  E8 0060				     call SetChar
-    238
-    239	026F  47				     inc di
-    240	0270  EB D6				     jmp DrawFrame_loopV
-    241	0272			     DrawFrame_loopV_end:
-    242
-    243
-    244	0272  8B E5				     mov sp, bp
-    245	0274  5D				     pop bp
-    246	0275  C3				     ret
-    247	0276			     DrawFrame	     endp
+    229
+    230
+    231	0240  8A 4E FC				     mov cl, DrawFrame_toCol
+    232	0243  2A 4E FE				     sub cl, DrawFrame_fromCol
+    233	0246  FE C9				     dec cl
+    234
+    235	0248  8A 5E FE				     mov bl, DrawFrame_fromCol
+    236	024B  8A 7E FD				     mov bh, DrawFrame_toRow
+    237						     Coords2KeyM a, b
+1   238
+1   239	024E  A1 0330r				     mov ax, SetChar_width
+1   240	0251  F6 E7				     mul bh
+1   241	0253  32 FF				     xor bh, bh
+1   242	0255  02 C3				     add al, bl
+1   243	0257  80 D4 00				     adc ah, 0
+1   244	025A  D1 E0				     shl ax, 1
+1   245
+    246	025C  40				     inc ax
+    247	025D  8B F8				     mov di, ax
     248
-    249
-    250				     ; void FillRect(ax: symb, bh: fromRow, bl:	fromCol, ch: toRow, cl:	toCol)
-    251				     ; uses ax,	bx, cx,	SetChar
-    252	0276			     FillRect	     proc near
-    253	      =	[bp-1]		     FillRect_fromRow	     equ [bp-1]
-    254	      =	[bp-2]		     FillRect_fromCol	     equ [bp-2]
-    255	      =	[bp-3]		     FillRect_toRow	     equ [bp-3]
-    256	      =	[bp-4]		     FillRect_toCol	     equ [bp-4]
-    257	      =	[bp-6]		     FillRect_symb	     equ [bp-6]
-    258	0276  55				     push bp
-    259	0277  8B EC				     mov bp, sp
-    260	0279  83 EC 06				     sub sp, 6
+    249	025F  B4 CD				     mov ah, 205
+    250	0261  B0 1F				     mov al, FrameStyle
+    251
+    252	0263  F3> AB				     rep stosw
+    253
+    254	0265			     DrawFrame_loopH_end:
+    255
+    256	0265  8A 4E FD				     mov cl, DrawFrame_toRow
+    257	0268  2A 4E FF				     sub cl, DrawFrame_fromRow
+    258	026B  FE C9				     dec cl
+    259	026D  F6 C1 80				     test cl, 1	SHL 7
+    260	0270  75 F3				     jnz DrawFrame_loopH_end
     261
-    262	027C  88 7E FF				     mov FillRect_fromRow, bh
-    263	027F  88 5E FE				     mov FillRect_fromCol, bl
-    264	0282  88 6E FD				     mov FillRect_toRow, ch
-    265	0285  88 4E FC				     mov FillRect_toCol, cl
-    266	0288  89 46 FA				     mov FillRect_symb,	ax
-    267
-    268	028B  8A 66 FF				     mov ah, FillRect_fromRow
-    269
-    270	028E  8A 7E FD		     FillRect_loopV: mov bh, FillRect_toRow
-    271	0291  3A E7				     cmp ah, bh
-    272	0293  73 1C				     jae FillRect_loopV_end
-    273
-    274	0295  8A 46 FE				     mov al, FillRect_fromCol
-    275	0298  8A 5E FC			     FillRect_loopH: mov bl, FillRect_toCol
-    276	029B  3A C3					     cmp al, bl
-    277	029D  73 0E					     jae FillRect_loopH_end
+    262	0272  8A 5E FE				     mov bl, DrawFrame_fromCol
+    263	0275  8A 7E FF				     mov bh, DrawFrame_fromRow
+    264	0278  FE C7				     inc bh
+    265						     Coords2KeyM a, b
+1   266
+1   267	027A  A1 0330r				     mov ax, SetChar_width
+1   268	027D  F6 E7				     mul bh
+1   269	027F  32 FF				     xor bh, bh
+1   270	0281  02 C3				     add al, bl
+1   271	0283  80 D4 00				     adc ah, 0
+1   272	0286  D1 E0				     shl ax, 1
+1   273
+    274
+    275	0288  8B F8				     mov di, ax
+    276	028A  A1 0330r				     mov ax, SetChar_width  ; TODO: Change previous macro params instead
+    277	028D  D1 E0				     shl ax, 1
     278
-    279	029F  8B 4E FA					     mov cx, FillRect_symb
-    280	02A2  8B D8					     mov bx, ax
-    281	02A4  50					     push ax
-    282	02A5  E8 0027					     call SetChar
-    283	02A8  58					     pop ax
-    284
-    285	02A9  FE C0					     inc al
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 6
+    279	028F  32 FF				     xor bh, bh
+    280	0291  8A 5E FC				     mov bl, DrawFrame_toCol
+    281	0294  2A 5E FE				     sub bl, DrawFrame_fromCol
+    282	0297  D0 E3				     shl bl, 1
+    283	0299  73 02				     jnc DrawFrame_loopV
+    284	029B  32 DB				     xor bl, bl
+    285
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 6
 frame.asm
 
 
 
-    286	02AB  EB EB					     jmp FillRect_loopH
-    287	02AD				     FillRect_loopH_end:
-    288
-    289	02AD  FE C4				     inc ah
-    290	02AF  EB DD				     jmp FillRect_loopV
-    291	02B1			     FillRect_loopV_end:
+    286	029D			     DrawFrame_loopV:
+    287	029D  26: C7 05	1FBA			     mov es:[di], (FrameStyle SHL 8) OR	186
+    288	02A2  26: C7 01	1FBA			     mov es:[di+bx], (FrameStyle SHL 8)	OR 186
+    289
+    290	02A7  03 F8				     add di, ax
+    291	02A9  E2 F2				     loop DrawFrame_loopV
     292
-    293	02B1  8B E5				     mov sp, bp
-    294	02B3  5D				     pop bp
-    295	02B4  C3				     ret
-    296	02B5			     FillRect	     endp
-    297
-    298
-    299				     ; void SetCharInit()
-    300				     ; uses: ax, bx, es
-    301	02B5			     SetCharInit     proc near
-    302
-    303	02B5  CD 11				     int 11h
-    304	02B7  35 0030				     xor ax, 30h
-    305	02BA  C1 E0 0B				     shl ax, 11
-    306	02BD  0D B800				     or	ax, VIDEOSEG
-    307	02C0  A3 02E5r				     mov SetChar_buf, ax
-    308
-    309	02C3  B8 0040				     mov ax, 40h
-    310	02C6  8E C0				     mov es, ax
-    311	02C8  26: A1 004A			     mov ax, es:4ah  ; 80 most often
-    312	02CC  A3 02E3r				     mov SetChar_width,	ax
+    293	02AB			     DrawFrame_loopV_end:
+    294
+    295
+    296	02AB  8B E5				     mov sp, bp
+    297	02AD  5D				     pop bp
+    298	02AE  C3				     ret
+    299	02AF			     DrawFrame	     endp
+    300
+    301
+    302				     ; void FillRect(ax: symb, bh: fromRow, bl:	fromCol, ch: toRow, cl:	toCol)
+    303				     ; uses ax,	bx, cx,	SetChar
+    304	02AF			     FillRect	     proc near
+    305	      =	[bp-1]		     FillRect_fromRow	     equ [bp-1]
+    306	      =	[bp-2]		     FillRect_fromCol	     equ [bp-2]
+    307	      =	[bp-3]		     FillRect_toRow	     equ [bp-3]
+    308	      =	[bp-4]		     FillRect_toCol	     equ [bp-4]
+    309	      =	[bp-6]		     FillRect_symb	     equ [bp-6]
+    310	02AF  55				     push bp
+    311	02B0  8B EC				     mov bp, sp
+    312	02B2  83 EC 06				     sub sp, 6
     313
-    314	02CF			     SetCharInit     endp
-    315
-    316
-    317				     ; void SetChar(cl:	letter,	ch: attrs, bh: row, bl:	column)
-    318				     ; uses: ax, bx, cx, dx, es
-    319	02CF			     SetChar	     proc near
-    320	02CF  A1 02E3r				     mov ax, SetChar_width
-    321	02D2  F6 E7				     mul bh
-    322	02D4  32 FF				     xor bh, bh
-    323	02D6  03 D8				     add bx, ax
-    324	02D8  D1 E3				     shl bx, 1
+    314	02B5  88 7E FF				     mov FillRect_fromRow, bh
+    315	02B8  88 5E FE				     mov FillRect_fromCol, bl
+    316	02BB  88 6E FD				     mov FillRect_toRow, ch
+    317	02BE  88 4E FC				     mov FillRect_toCol, cl
+    318	02C1  89 46 FA				     mov FillRect_symb,	ax
+    319
+    320	02C4  8A 66 FF				     mov ah, FillRect_fromRow
+    321
+    322	02C7  8A 7E FD		     FillRect_loopV: mov bh, FillRect_toRow
+    323	02CA  3A E7				     cmp ah, bh
+    324	02CC  73 1C				     jae FillRect_loopV_end
     325
-    326	02DA  A1 02E5r				     mov ax, SetChar_buf
-    327	02DD  8E C0				     mov es, ax
-    328	02DF  26: 89 0F				     mov es:[bx], cx
-    329
-    330	02E2  C3				     ret
-    331
-    332	02E3  0050		     SetChar_width   dw	80
-    333	02E5  0000		     SetChar_buf     dw	0
-    334	02E7			     SetChar	     endp
-    335
+    326	02CE  8A 46 FE				     mov al, FillRect_fromCol
+    327	02D1  8A 5E FC			     FillRect_loopH: mov bl, FillRect_toCol
+    328	02D4  3A C3					     cmp al, bl
+    329	02D6  73 0E					     jae FillRect_loopH_end
+    330
+    331	02D8  8B 4E FA					     mov cx, FillRect_symb
+    332	02DB  8B D8					     mov bx, ax
+    333	02DD  50					     push ax
+    334	02DE  E8 0035					     call SetChar
+    335	02E1  58					     pop ax
     336
-    337				     ; void Beep(bx: frequency,	cx: length)
-    338				     ; uses ax,	bx, cx
-    339	02E7			     Beep	     proc near
-    340	02E7  B0 B6				     mov al, 182
-    341	02E9  E6 43				     out 43h, al
-    342	02EB  8B C3				     mov ax, bx
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 7
+    337	02E2  FE C0					     inc al
+    338	02E4  EB EB					     jmp FillRect_loopH
+    339	02E6				     FillRect_loopH_end:
+    340
+    341	02E6  FE C4				     inc ah
+    342	02E8  EB DD				     jmp FillRect_loopV
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 7
 frame.asm
 
 
 
-    343	02ED  E6 42				     out 42h, al
-    344	02EF  8A C4				     mov al, ah
-    345	02F1  E6 42				     out 42h, al
-    346	02F3  E4 61				     in	al, 61h
-    347	02F5  0C 03				     or	al, 00000011b
-    348	02F7  E6 61				     out 61h, al
-    349	02F9  8B D9				     mov bx, cx
+    343	02EA			     FillRect_loopV_end:
+    344
+    345	02EA  8B E5				     mov sp, bp
+    346	02EC  5D				     pop bp
+    347	02ED  C3				     ret
+    348	02EE			     FillRect	     endp
+    349
     350
-    351
-    352	02FB  B9 FFFF		     Beep_pause1:    mov cx, 65535
-    353	02FE  49		     Beep_pause2:    dec cx
-    354	02FF  75 FD				     jnz Beep_pause2
-    355	0301  4B				     dec bx
-    356	0302  75 F7				     jnz Beep_pause1
-    357	0304  E4 61				     in	al, 61h
-    358	0306  24 FC				     and al, 11111100b
-    359	0308  E6 61				     out 61h, al
+    351				     ; void SetCharInit()
+    352				     ; uses: ax, bx, es
+    353	02EE			     SetCharInit     proc near
+    354
+    355	02EE  CD 11				     int 11h
+    356	02F0  35 0030				     xor ax, 30h
+    357	02F3  C1 E0 0B				     shl ax, 11
+    358	02F6  0D B800				     or	ax, VIDEOSEG
+    359	02F9  A3 0332r				     mov SetChar_buf, ax
     360
-    361	030A  C3				     ret
-    362	030B			     Beep	     endp
-    363
-    364
-    365				     ; TODO: Maybe use the int 15h 81h
-    366				     ; void Sleep(ax: duration)
-    367				     ; uses ax
-    368	030B			     Sleep	     proc near
-    369
-    370	030B  85 C0		     Sleep_loop:     test ax, ax
-    371	030D  74 03				     jz	Sleep_loop_end
-    372	030F  48				     dec ax
-    373	0310  EB F9				     jmp Sleep_loop
-    374	0312			     Sleep_loop_end:
-    375	0312  C3				     ret
-    376	0313			     Sleep	     endp
-    377
-    378
-    379				     ; void DrawCmd(bh:	row, bl: column)
-    380				     ; uses ax,	bx, cx,	si, SetChar
-    381	0313			     DrawCmd	     proc near
-    382	      =	[bp-1]		     DrawCmd_i	     equ [bp-1]
-    383	      =	[bp-2]		     DrawCmd_origCol equ [bp-2]
-    384	0313  55				     push bp
-    385	0314  8B EC				     mov bp, sp
-    386	0316  83 EC 02				     sub sp, 2
-    387
-    388	0319  88 5E FE				     mov DrawCmd_origCol, bl
-    389	031C  A0 0080				     mov al, ds:80h
-    390	031F  88 46 FF				     mov DrawCmd_i, al
-    391	0322  BE 0081				     mov si, 81h
-    392
-    393	0325  8A 46 FF		     DrawCmd_loop:   mov al, DrawCmd_i
-    394	0328  84 C0				     test al, al
-    395	032A  74 21				     jz	DrawCmd_loop_end
-    396
-    397	032C  8A 0C				     mov cl, [si]
-    398	032E  80 F1 24				     xor cl, '$'
-    399	0331  74 0F				     je	DrawCmd_nl
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 8
+    361	02FC  B8 0040				     mov ax, 40h
+    362	02FF  8E C0				     mov es, ax
+    363	0301  26: A1 004A			     mov ax, es:4ah  ; 80 most often
+    364	0305  A3 0330r				     mov SetChar_width,	ax
+    365
+    366	0308			     SetCharInit     endp
+    367
+    368
+    369				     ; Coords2KeyM moved up
+    370
+    371
+    372				     ; ax: coords Coords2Key(bh: row, bl: column)
+    373				     ; uses: ax, (bx), dx
+    374	0308			     Coords2Key	     proc near
+    375						     Coords2KeyM a, b
+1   376
+1   377	0308  A1 0330r				     mov ax, SetChar_width
+1   378	030B  F6 E7				     mul bh
+1   379	030D  32 FF				     xor bh, bh
+1   380	030F  02 C3				     add al, bl
+1   381	0311  80 D4 00				     adc ah, 0
+1   382	0314  D1 E0				     shl ax, 1
+1   383
+    384	0316			     Coords2Key	     endp
+    385
+    386
+    387				     ; ax: index SetChar(cl: letter, ch: attrs,	bh: row, bl: column)
+    388				     ; uses: ax, (bx), (cx), dx, es
+    389	0316			     SetChar	     proc near
+    390						     Coords2KeyM a, b
+1   391
+1   392	0316  A1 0330r				     mov ax, SetChar_width
+1   393	0319  F6 E7				     mul bh
+1   394	031B  32 FF				     xor bh, bh
+1   395	031D  02 C3				     add al, bl
+1   396	031F  80 D4 00				     adc ah, 0
+1   397	0322  D1 E0				     shl ax, 1
+1   398
+    399
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 8
 frame.asm
 
 
 
-    400	0333  80 F1 24				     xor cl, '$'
+    400	0324  93				     xchg ax, bx
     401
-    402	0336  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-    403	0338  53				     push bx
-    404	0339  E8 FF93				     call SetChar
-    405	033C  5B				     pop bx
-    406
-    407	033D  FE C3				     inc bl
-    408
-    409	033F  EB 06 90				     jmp DrawCmd_nl_skip
-    410
-    411	0342  8A 5E FE		     DrawCmd_nl:     mov bl, DrawCmd_origCol
-    412	0345  FE C7				     inc bh
+    402	0325  8B 16 0332r			     mov dx, SetChar_buf
+    403	0329  8E C2				     mov es, dx
+    404	032B  26: 89 0F				     mov es:[bx], cx
+    405
+    406	032E  93				     xchg ax, bx
+    407
+    408	032F  C3				     ret
+    409
+    410	0330  0050		     SetChar_width   dw	80
+    411	0332  0000		     SetChar_buf     dw	0
+    412	0334			     SetChar	     endp
     413
-    414	0347			     DrawCmd_nl_skip:
-    415	0347  46				     inc si
-    416	0348  FF 4E FF				     dec word ptr DrawCmd_i
-    417	034B  EB D8				     jmp DrawCmd_loop
-    418	034D			     DrawCmd_loop_end:
-    419
-    420	034D  8B E5				     mov sp, bp
-    421	034F  5D				     pop bp
-    422	0350  C3				     ret
-    423	0351			     DrawCmd	     endp
-    424
-    425
-    426				     ; void DrawNum10(ax: num, bh: row,	bl: column)
-    427				     ; uses ax,	bx, cx,	dx, SetChar
-    428	0351			     DrawNum10	     proc near
-    429						     ;add bl, 5
-    430	0351  80 C3 11				     add bl, 17
-    431
-    432	0354  85 C0		     DrawNum10_loop: test ax, ax
-    433	0356  74 1A				     jz	DrawNum10_loop_end
-    434
-    435						     ;aam  ; This is faster than division and more convenient, although	relies on ax+
-    436				     being small enough
-    437	0358  B1 0A				     mov cl, 10
-    438	035A  32 ED				     xor ch, ch
-    439	035C  33 D2				     xor dx, dx
-    440	035E  F7 F1				     div cx
+    414
+    415				     ; void Beep(bx: frequency,	cx: length)
+    416				     ; uses ax,	bx, cx
+    417	0334			     Beep	     proc near
+    418	0334  B0 B6				     mov al, 182
+    419	0336  E6 43				     out 43h, al
+    420	0338  8B C3				     mov ax, bx
+    421	033A  E6 42				     out 42h, al
+    422	033C  8A C4				     mov al, ah
+    423	033E  E6 42				     out 42h, al
+    424	0340  E4 61				     in	al, 61h
+    425	0342  0C 03				     or	al, 00000011b
+    426	0344  E6 61				     out 61h, al
+    427	0346  8B D9				     mov bx, cx
+    428
+    429
+    430	0348  B9 FFFF		     Beep_pause1:    mov cx, 65535
+    431	034B  49		     Beep_pause2:    dec cx
+    432	034C  75 FD				     jnz Beep_pause2
+    433	034E  4B				     dec bx
+    434	034F  75 F7				     jnz Beep_pause1
+    435	0351  E4 61				     in	al, 61h
+    436	0353  24 FC				     and al, 11111100b
+    437	0355  E6 61				     out 61h, al
+    438
+    439	0357  C3				     ret
+    440	0358			     Beep	     endp
     441
-    442	0360  80 C2 30				     add dl, '0'
-    443	0363  8A CA				     mov cl, dl
-    444	0365  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-    445
-    446	0367  50				     push ax
-    447	0368  53				     push bx
-    448
-    449	0369  E8 FF63				     call SetChar
-    450
-    451	036C  5B				     pop bx
-    452	036D  58				     pop ax
-    453
-    454	036E  FE CB				     dec bl
-    455	0370  EB E2				     jmp DrawNum10_loop
-    456	0372			     DrawNum10_loop_end:
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 9
+    442
+    443				     ; TODO: Maybe use the int 15h 81h
+    444				     ; void Sleep(ax: duration)
+    445				     ; uses ax
+    446	0358			     Sleep	     proc near
+    447
+    448	0358  85 C0		     Sleep_loop:     test ax, ax
+    449	035A  74 03				     jz	Sleep_loop_end
+    450	035C  48				     dec ax
+    451	035D  EB F9				     jmp Sleep_loop
+    452	035F			     Sleep_loop_end:
+    453	035F  C3				     ret
+    454	0360			     Sleep	     endp
+    455
+    456
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 9
 frame.asm
 
 
 
-    457
-    458	0372  C3				     ret
-    459	0373			     DrawNum10	     endp
-    460
-    461
-    462				     ; macro(base)
-    463				     ; void DrawNumL&base(ax: num, bh: row, bl:	column)
-    464				     ; uses ax,	bx, cx,	SetChar
-    465				     DrawNumLB	     macro base
-    466
-    467				     DrawNumL&base   proc near
-    468						     ;add bl, base
-    469						     add bl, 17
+    457				     ; void DrawCmd(bh:	row, bl: column)
+    458				     ; uses ax,	bx, cx,	si, SetChar
+    459	0360			     DrawCmd	     proc near
+    460	      =	[bp-1]		     DrawCmd_i	     equ [bp-1]
+    461	      =	[bp-2]		     DrawCmd_origCol equ [bp-2]
+    462	0360  55				     push bp
+    463	0361  8B EC				     mov bp, sp
+    464	0363  83 EC 02				     sub sp, 2
+    465
+    466	0366  88 5E FE				     mov DrawCmd_origCol, bl
+    467	0369  A0 0080				     mov al, ds:80h
+    468	036C  88 46 FF				     mov DrawCmd_i, al
+    469	036F  BE 0081				     mov si, 81h
     470
-    471				     DrawNumL&base&_loop:
-    472						     test ax, ax
-    473						     jz	DrawNumL&base&_loop_end
+    471	0372  8A 46 FF		     DrawCmd_loop:   mov al, DrawCmd_i
+    472	0375  84 C0				     test al, al
+    473	0377  74 21				     jz	DrawCmd_loop_end
     474
-    475						     mov cl, al
-    476						     and cl, (1	SHL base) - 1
-    477
-    478						     cmp cl, 10
-    479						     jae DrawNumL&base&_bigDigit
-    480
-    481						     add cl, '0'
-    482
-    483						     jmp DrawNumL&base&_notBigDigit
-    484				     DrawNumL&base&_bigDigit:
-    485						     add cl, 'A'-10
-    486				     DrawNumL&base&_notBigDigit:
-    487
-    488						     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-    489
-    490						     shr ax, base
+    475	0379  8A 0C				     mov cl, [si]
+    476	037B  80 F1 24				     xor cl, '$'
+    477	037E  74 0F				     je	DrawCmd_nl
+    478	0380  80 F1 24				     xor cl, '$'
+    479
+    480	0383  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+    481	0385  53				     push bx
+    482	0386  E8 FF8D				     call SetChar
+    483	0389  5B				     pop bx
+    484
+    485	038A  FE C3				     inc bl
+    486
+    487	038C  EB 06 90				     jmp DrawCmd_nl_skip
+    488
+    489	038F  8A 5E FE		     DrawCmd_nl:     mov bl, DrawCmd_origCol
+    490	0392  FE C7				     inc bh
     491
-    492						     push ax
-    493						     push bx
-    494
-    495						     call SetChar
-    496
-    497						     pop bx
-    498						     pop ax
-    499
-    500						     dec bl
-    501						     jmp DrawNumL&base&_loop
-    502				     DrawNumL&base&_loop_end:
+    492	0394			     DrawCmd_nl_skip:
+    493	0394  46				     inc si
+    494	0395  FF 4E FF				     dec word ptr DrawCmd_i
+    495	0398  EB D8				     jmp DrawCmd_loop
+    496	039A			     DrawCmd_loop_end:
+    497
+    498	039A  8B E5				     mov sp, bp
+    499	039C  5D				     pop bp
+    500	039D  C3				     ret
+    501	039E			     DrawCmd	     endp
+    502
     503
-    504						     ret
-    505				     DrawNumL&base&  endp
-    506
-    507						     endm
-    508
+    504				     ; void DrawNum10(ax: num, bh: row,	bl: column)
+    505				     ; uses ax,	bx, cx,	dx, SetChar
+    506	039E			     DrawNum10	     proc near
+    507						     ;add bl, 5
+    508	039E  80 C3 11				     add bl, 17
     509
-    510
-    511				     DrawNumLB	     1 ;2
-1   512
-1   513	0373			     DrawNumL1	     proc near
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 10
+    510	03A1  85 C0		     DrawNum10_loop: test ax, ax
+    511	03A3  74 1A				     jz	DrawNum10_loop_end
+    512
+    513						     ;aam  ; This is faster than division and more convenient, although	relies on ax+
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 10
 frame.asm
 
 
 
-1   514						     ;add bl, 1
-1   515	0373  80 C3 11				     add bl, 17
-1   516
-1   517	0376			     DrawNumL1_loop:
-1   518	0376  85 C0				     test ax, ax
-1   519	0378  74 22				     jz	DrawNumL1_loop_end
-1   520
-1   521	037A  8A C8				     mov cl, al
-1   522	037C  80 E1 01				     and cl, (1	SHL 1) - 1
-1   523
-1   524	037F  80 F9 0A				     cmp cl, 10
-1   525	0382  73 06				     jae DrawNumL1_bigDigit
-1   526
-1   527	0384  80 C1 30				     add cl, '0'
-1   528
-1   529	0387  EB 04 90				     jmp DrawNumL1_notBigDigit
-1   530	038A			     DrawNumL1_bigDigit:
-1   531	038A  80 C1 37				     add cl, 'A'-10
-1   532	038D			     DrawNumL1_notBigDigit:
-1   533
-1   534	038D  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-1   535
-1   536	038F  D1 E8				     shr ax, 1
-1   537
-1   538	0391  50				     push ax
-1   539	0392  53				     push bx
-1   540
-1   541	0393  E8 FF39				     call SetChar
-1   542
-1   543	0396  5B				     pop bx
-1   544	0397  58				     pop ax
-1   545
-1   546	0398  FE CB				     dec bl
-1   547	039A  EB DA				     jmp DrawNumL1_loop
-1   548	039C			     DrawNumL1_loop_end:
-1   549
-1   550	039C  C3				     ret
-1   551	039D			     DrawNumL1	     endp
-1   552
-    553				     DrawNumLB	     3 ;3
-1   554
-1   555	039D			     DrawNumL3	     proc near
-1   556						     ;add bl, 3
-1   557	039D  80 C3 11				     add bl, 17
-1   558
-1   559	03A0			     DrawNumL3_loop:
-1   560	03A0  85 C0				     test ax, ax
-1   561	03A2  74 23				     jz	DrawNumL3_loop_end
-1   562
-1   563	03A4  8A C8				     mov cl, al
-1   564	03A6  80 E1 07				     and cl, (1	SHL 3) - 1
-1   565
-1   566	03A9  80 F9 0A				     cmp cl, 10
-1   567	03AC  73 06				     jae DrawNumL3_bigDigit
-1   568
-1   569	03AE  80 C1 30				     add cl, '0'
-1   570
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 11
+    514				     being small enough
+    515	03A5  B1 0A				     mov cl, 10
+    516	03A7  32 ED				     xor ch, ch
+    517	03A9  33 D2				     xor dx, dx
+    518	03AB  F7 F1				     div cx
+    519
+    520	03AD  80 C2 30				     add dl, '0'
+    521	03B0  8A CA				     mov cl, dl
+    522	03B2  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+    523
+    524	03B4  50				     push ax
+    525	03B5  53				     push bx
+    526
+    527	03B6  E8 FF5D				     call SetChar
+    528
+    529	03B9  5B				     pop bx
+    530	03BA  58				     pop ax
+    531
+    532	03BB  FE CB				     dec bl
+    533	03BD  EB E2				     jmp DrawNum10_loop
+    534	03BF			     DrawNum10_loop_end:
+    535
+    536	03BF  C3				     ret
+    537	03C0			     DrawNum10	     endp
+    538
+    539
+    540				     ; macro(base)
+    541				     ; void DrawNumL&base(ax: num, bh: row, bl:	column)
+    542				     ; uses ax,	bx, cx,	SetChar
+    543				     DrawNumLB	     macro base
+    544
+    545				     DrawNumL&base   proc near
+    546						     ;add bl, base
+    547						     add bl, 17
+    548
+    549				     DrawNumL&base&_loop:
+    550						     test ax, ax
+    551						     jz	DrawNumL&base&_loop_end
+    552
+    553						     mov cl, al
+    554						     and cl, (1	SHL base) - 1
+    555
+    556						     cmp cl, 10
+    557						     jae DrawNumL&base&_bigDigit
+    558
+    559						     add cl, '0'
+    560
+    561						     jmp DrawNumL&base&_notBigDigit
+    562				     DrawNumL&base&_bigDigit:
+    563						     add cl, 'A'-10
+    564				     DrawNumL&base&_notBigDigit:
+    565
+    566						     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+    567
+    568						     shr ax, base
+    569
+    570						     push ax
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 11
 frame.asm
 
 
 
-1   571	03B1  EB 04 90				     jmp DrawNumL3_notBigDigit
-1   572	03B4			     DrawNumL3_bigDigit:
-1   573	03B4  80 C1 37				     add cl, 'A'-10
-1   574	03B7			     DrawNumL3_notBigDigit:
-1   575
-1   576	03B7  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-1   577
-1   578	03B9  C1 E8 03				     shr ax, 3
-1   579
-1   580	03BC  50				     push ax
-1   581	03BD  53				     push bx
-1   582
-1   583	03BE  E8 FF0E				     call SetChar
-1   584
-1   585	03C1  5B				     pop bx
-1   586	03C2  58				     pop ax
-1   587
-1   588	03C3  FE CB				     dec bl
-1   589	03C5  EB D9				     jmp DrawNumL3_loop
-1   590	03C7			     DrawNumL3_loop_end:
-1   591
-1   592	03C7  C3				     ret
-1   593	03C8			     DrawNumL3	     endp
+    571						     push bx
+    572
+    573						     call SetChar
+    574
+    575						     pop bx
+    576						     pop ax
+    577
+    578						     dec bl
+    579						     jmp DrawNumL&base&_loop
+    580				     DrawNumL&base&_loop_end:
+    581
+    582						     ret
+    583				     DrawNumL&base&  endp
+    584
+    585						     endm
+    586
+    587
+    588
+    589				     DrawNumLB	     1 ;2
+1   590
+1   591	03C0			     DrawNumL1	     proc near
+1   592						     ;add bl, 1
+1   593	03C0  80 C3 11				     add bl, 17
 1   594
-    595				     DrawNumLB	     4 ;4
-1   596
-1   597	03C8			     DrawNumL4	     proc near
-1   598						     ;add bl, 4
-1   599	03C8  80 C3 11				     add bl, 17
-1   600
-1   601	03CB			     DrawNumL4_loop:
-1   602	03CB  85 C0				     test ax, ax
-1   603	03CD  74 23				     jz	DrawNumL4_loop_end
+1   595	03C3			     DrawNumL1_loop:
+1   596	03C3  85 C0				     test ax, ax
+1   597	03C5  74 22				     jz	DrawNumL1_loop_end
+1   598
+1   599	03C7  8A C8				     mov cl, al
+1   600	03C9  80 E1 01				     and cl, (1	SHL 1) - 1
+1   601
+1   602	03CC  80 F9 0A				     cmp cl, 10
+1   603	03CF  73 06				     jae DrawNumL1_bigDigit
 1   604
-1   605	03CF  8A C8				     mov cl, al
-1   606	03D1  80 E1 0F				     and cl, (1	SHL 4) - 1
-1   607
-1   608	03D4  80 F9 0A				     cmp cl, 10
-1   609	03D7  73 06				     jae DrawNumL4_bigDigit
-1   610
-1   611	03D9  80 C1 30				     add cl, '0'
-1   612
-1   613	03DC  EB 04 90				     jmp DrawNumL4_notBigDigit
-1   614	03DF			     DrawNumL4_bigDigit:
-1   615	03DF  80 C1 37				     add cl, 'A'-10
-1   616	03E2			     DrawNumL4_notBigDigit:
-1   617
-1   618	03E2  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-1   619
-1   620	03E4  C1 E8 04				     shr ax, 4
-1   621
-1   622	03E7  50				     push ax
-1   623	03E8  53				     push bx
-1   624
-1   625	03E9  E8 FEE3				     call SetChar
-1   626
-1   627	03EC  5B				     pop bx
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 12
+1   605	03D1  80 C1 30				     add cl, '0'
+1   606
+1   607	03D4  EB 04 90				     jmp DrawNumL1_notBigDigit
+1   608	03D7			     DrawNumL1_bigDigit:
+1   609	03D7  80 C1 37				     add cl, 'A'-10
+1   610	03DA			     DrawNumL1_notBigDigit:
+1   611
+1   612	03DA  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+1   613
+1   614	03DC  D1 E8				     shr ax, 1
+1   615
+1   616	03DE  50				     push ax
+1   617	03DF  53				     push bx
+1   618
+1   619	03E0  E8 FF33				     call SetChar
+1   620
+1   621	03E3  5B				     pop bx
+1   622	03E4  58				     pop ax
+1   623
+1   624	03E5  FE CB				     dec bl
+1   625	03E7  EB DA				     jmp DrawNumL1_loop
+1   626	03E9			     DrawNumL1_loop_end:
+1   627
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 12
 frame.asm
 
 
 
-1   628	03ED  58				     pop ax
-1   629
-1   630	03EE  FE CB				     dec bl
-1   631	03F0  EB D9				     jmp DrawNumL4_loop
-1   632	03F2			     DrawNumL4_loop_end:
-1   633
-1   634	03F2  C3				     ret
-1   635	03F3			     DrawNumL4	     endp
+1   628	03E9  C3				     ret
+1   629	03EA			     DrawNumL1	     endp
+1   630
+    631				     DrawNumLB	     3 ;3
+1   632
+1   633	03EA			     DrawNumL3	     proc near
+1   634						     ;add bl, 3
+1   635	03EA  80 C3 11				     add bl, 17
 1   636
-    637
-    638
-    639	03F3			     .data
-    640
-    641
-    642				     end Start
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 13
+1   637	03ED			     DrawNumL3_loop:
+1   638	03ED  85 C0				     test ax, ax
+1   639	03EF  74 23				     jz	DrawNumL3_loop_end
+1   640
+1   641	03F1  8A C8				     mov cl, al
+1   642	03F3  80 E1 07				     and cl, (1	SHL 3) - 1
+1   643
+1   644	03F6  80 F9 0A				     cmp cl, 10
+1   645	03F9  73 06				     jae DrawNumL3_bigDigit
+1   646
+1   647	03FB  80 C1 30				     add cl, '0'
+1   648
+1   649	03FE  EB 04 90				     jmp DrawNumL3_notBigDigit
+1   650	0401			     DrawNumL3_bigDigit:
+1   651	0401  80 C1 37				     add cl, 'A'-10
+1   652	0404			     DrawNumL3_notBigDigit:
+1   653
+1   654	0404  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+1   655
+1   656	0406  C1 E8 03				     shr ax, 3
+1   657
+1   658	0409  50				     push ax
+1   659	040A  53				     push bx
+1   660
+1   661	040B  E8 FF08				     call SetChar
+1   662
+1   663	040E  5B				     pop bx
+1   664	040F  58				     pop ax
+1   665
+1   666	0410  FE CB				     dec bl
+1   667	0412  EB D9				     jmp DrawNumL3_loop
+1   668	0414			     DrawNumL3_loop_end:
+1   669
+1   670	0414  C3				     ret
+1   671	0415			     DrawNumL3	     endp
+1   672
+    673				     DrawNumLB	     4 ;4
+1   674
+1   675	0415			     DrawNumL4	     proc near
+1   676						     ;add bl, 4
+1   677	0415  80 C3 11				     add bl, 17
+1   678
+1   679	0418			     DrawNumL4_loop:
+1   680	0418  85 C0				     test ax, ax
+1   681	041A  74 23				     jz	DrawNumL4_loop_end
+1   682
+1   683	041C  8A C8				     mov cl, al
+1   684	041E  80 E1 0F				     and cl, (1	SHL 4) - 1
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 13
+frame.asm
+
+
+
+1   685
+1   686	0421  80 F9 0A				     cmp cl, 10
+1   687	0424  73 06				     jae DrawNumL4_bigDigit
+1   688
+1   689	0426  80 C1 30				     add cl, '0'
+1   690
+1   691	0429  EB 04 90				     jmp DrawNumL4_notBigDigit
+1   692	042C			     DrawNumL4_bigDigit:
+1   693	042C  80 C1 37				     add cl, 'A'-10
+1   694	042F			     DrawNumL4_notBigDigit:
+1   695
+1   696	042F  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+1   697
+1   698	0431  C1 E8 04				     shr ax, 4
+1   699
+1   700	0434  50				     push ax
+1   701	0435  53				     push bx
+1   702
+1   703	0436  E8 FEDD				     call SetChar
+1   704
+1   705	0439  5B				     pop bx
+1   706	043A  58				     pop ax
+1   707
+1   708	043B  FE CB				     dec bl
+1   709	043D  EB D9				     jmp DrawNumL4_loop
+1   710	043F			     DrawNumL4_loop_end:
+1   711
+1   712	043F  C3				     ret
+1   713	0440			     DrawNumL4	     endp
+1   714
+    715
+    716
+    717	0440			     .data
+    718
+    719
+    720				     end Start
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 14
 Symbol Table
 
 
@@ -710,7 +793,7 @@ Symbol Name			  Type	 Value
 
 ??DATE				  Text	 "02/15/21"
 ??FILENAME			  Text	 "frame	  "
-??TIME				  Text	 "12:41:17"
+??TIME				  Text	 "14:11:04"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -724,55 +807,55 @@ Symbol Name			  Type	 Value
 @MODEL				  Text	 1
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
-BEEP				  Near	 DGROUP:02E7
-BEEP_PAUSE1			  Near	 DGROUP:02FB
-BEEP_PAUSE2			  Near	 DGROUP:02FE
-DRAWCMD				  Near	 DGROUP:0313
+BEEP				  Near	 DGROUP:0334
+BEEP_PAUSE1			  Near	 DGROUP:0348
+BEEP_PAUSE2			  Near	 DGROUP:034B
+COORDS2KEY			  Near	 DGROUP:0308
+DRAWCMD				  Near	 DGROUP:0360
 DRAWCMD_I			  Text	 [bp-1]
-DRAWCMD_LOOP			  Near	 DGROUP:0325
-DRAWCMD_LOOP_END		  Near	 DGROUP:034D
-DRAWCMD_NL			  Near	 DGROUP:0342
-DRAWCMD_NL_SKIP			  Near	 DGROUP:0347
+DRAWCMD_LOOP			  Near	 DGROUP:0372
+DRAWCMD_LOOP_END		  Near	 DGROUP:039A
+DRAWCMD_NL			  Near	 DGROUP:038F
+DRAWCMD_NL_SKIP			  Near	 DGROUP:0394
 DRAWCMD_ORIGCOL			  Text	 [bp-2]
 DRAWFRAME			  Near	 DGROUP:01AF
 DRAWFRAME_FROMCOL		  Text	 [bp-2]
 DRAWFRAME_FROMROW		  Text	 [bp-1]
-DRAWFRAME_LOOPH			  Near	 DGROUP:021C
-DRAWFRAME_LOOPH_END		  Near	 DGROUP:0240
-DRAWFRAME_LOOPV			  Near	 DGROUP:0248
-DRAWFRAME_LOOPV_END		  Near	 DGROUP:0272
+DRAWFRAME_LOOPH_END		  Near	 DGROUP:0265
+DRAWFRAME_LOOPV			  Near	 DGROUP:029D
+DRAWFRAME_LOOPV_END		  Near	 DGROUP:02AB
 DRAWFRAME_TOCOL			  Text	 [bp-4]
 DRAWFRAME_TOROW			  Text	 [bp-3]
-DRAWNUM10			  Near	 DGROUP:0351
-DRAWNUM10_LOOP			  Near	 DGROUP:0354
-DRAWNUM10_LOOP_END		  Near	 DGROUP:0372
-DRAWNUML1			  Near	 DGROUP:0373
-DRAWNUML1_BIGDIGIT		  Near	 DGROUP:038A
-DRAWNUML1_LOOP			  Near	 DGROUP:0376
-DRAWNUML1_LOOP_END		  Near	 DGROUP:039C
-DRAWNUML1_NOTBIGDIGIT		  Near	 DGROUP:038D
-DRAWNUML3			  Near	 DGROUP:039D
-DRAWNUML3_BIGDIGIT		  Near	 DGROUP:03B4
-DRAWNUML3_LOOP			  Near	 DGROUP:03A0
-DRAWNUML3_LOOP_END		  Near	 DGROUP:03C7
-DRAWNUML3_NOTBIGDIGIT		  Near	 DGROUP:03B7
-DRAWNUML4			  Near	 DGROUP:03C8
-DRAWNUML4_BIGDIGIT		  Near	 DGROUP:03DF
-DRAWNUML4_LOOP			  Near	 DGROUP:03CB
-DRAWNUML4_LOOP_END		  Near	 DGROUP:03F2
-DRAWNUML4_NOTBIGDIGIT		  Near	 DGROUP:03E2
-FILLRECT			  Near	 DGROUP:0276
-Turbo Assembler	 Version 4.1	    02/15/21 12:41:17	    Page 14
+DRAWNUM10			  Near	 DGROUP:039E
+DRAWNUM10_LOOP			  Near	 DGROUP:03A1
+DRAWNUM10_LOOP_END		  Near	 DGROUP:03BF
+DRAWNUML1			  Near	 DGROUP:03C0
+DRAWNUML1_BIGDIGIT		  Near	 DGROUP:03D7
+DRAWNUML1_LOOP			  Near	 DGROUP:03C3
+DRAWNUML1_LOOP_END		  Near	 DGROUP:03E9
+DRAWNUML1_NOTBIGDIGIT		  Near	 DGROUP:03DA
+DRAWNUML3			  Near	 DGROUP:03EA
+DRAWNUML3_BIGDIGIT		  Near	 DGROUP:0401
+DRAWNUML3_LOOP			  Near	 DGROUP:03ED
+DRAWNUML3_LOOP_END		  Near	 DGROUP:0414
+DRAWNUML3_NOTBIGDIGIT		  Near	 DGROUP:0404
+DRAWNUML4			  Near	 DGROUP:0415
+DRAWNUML4_BIGDIGIT		  Near	 DGROUP:042C
+DRAWNUML4_LOOP			  Near	 DGROUP:0418
+DRAWNUML4_LOOP_END		  Near	 DGROUP:043F
+DRAWNUML4_NOTBIGDIGIT		  Near	 DGROUP:042F
+FILLRECT			  Near	 DGROUP:02AF
+Turbo Assembler	 Version 4.1	    02/15/21 14:11:04	    Page 15
 Symbol Table
 
 
 
 FILLRECT_FROMCOL		  Text	 [bp-2]
 FILLRECT_FROMROW		  Text	 [bp-1]
-FILLRECT_LOOPH			  Near	 DGROUP:0298
-FILLRECT_LOOPH_END		  Near	 DGROUP:02AD
-FILLRECT_LOOPV			  Near	 DGROUP:028E
-FILLRECT_LOOPV_END		  Near	 DGROUP:02B1
+FILLRECT_LOOPH			  Near	 DGROUP:02D1
+FILLRECT_LOOPH_END		  Near	 DGROUP:02E6
+FILLRECT_LOOPV			  Near	 DGROUP:02C7
+FILLRECT_LOOPV_END		  Near	 DGROUP:02EA
 FILLRECT_SYMB			  Text	 [bp-6]
 FILLRECT_TOCOL			  Text	 [bp-4]
 FILLRECT_TOROW			  Text	 [bp-3]
@@ -781,23 +864,24 @@ MAIN_LOOP			  Near	 DGROUP:0119
 MAIN_LOOP_END			  Near	 DGROUP:0137
 PAUSE_LOOP			  Near	 DGROUP:0190
 PAUSE_LOOP_END			  Near	 DGROUP:019D
-SETCHAR				  Near	 DGROUP:02CF
-SETCHARINIT			  Near	 DGROUP:02B5
-SETCHAR_BUF			  Word	 DGROUP:02E5
-SETCHAR_WIDTH			  Word	 DGROUP:02E3
-SLEEP				  Near	 DGROUP:030B
-SLEEP_LOOP			  Near	 DGROUP:030B
-SLEEP_LOOP_END			  Near	 DGROUP:0312
+SETCHAR				  Near	 DGROUP:0316
+SETCHARINIT			  Near	 DGROUP:02EE
+SETCHAR_BUF			  Word	 DGROUP:0332
+SETCHAR_WIDTH			  Word	 DGROUP:0330
+SLEEP				  Near	 DGROUP:0358
+SLEEP_LOOP			  Near	 DGROUP:0358
+SLEEP_LOOP_END			  Near	 DGROUP:035F
 START				  Near	 DGROUP:0100
 VIDEOSEG			  Number B800
 
 Macro Name
 
+COORDS2KEYM
 DRAWNUMLB
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  03F3 Word	  Public  CODE
+  _TEXT				  16  0440 Word	  Public  CODE
 

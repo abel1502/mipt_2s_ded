@@ -122,6 +122,20 @@ Pause_loop_end:
 		int 21h
 
 
+; Same as Coords2Key, but embeddable
+; macro(result (register letter, can't be d), coords (register letter, can't be d))
+Coords2KeyM	macro result, coords
+		
+		mov result&x, SetChar_width
+		mul coords&h
+		xor coords&h, coords&h
+		add result&l, coords&l
+		adc result&h, 0
+		shl result&x, 1
+		
+		endm
+
+
 ; void DrawFrame(bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
 ; uses ax, ab, cx, dx, di, SetChar
 DrawFrame	proc near
@@ -184,60 +198,74 @@ DrawFrame_toCol		equ [bp-4]
 		mov bl, DrawFrame_fromCol
 		call SetChar
 		
-		mov al, DrawFrame_fromCol
-		xor ah, ah
-		mov di, ax
-		inc di
 		
-DrawFrame_loopH:
-		mov al, DrawFrame_toCol
-		xor ah, ah
-		cmp di, ax
-		jae DrawFrame_loopH_end
+		; es is already set by SetChar
+		xor ch, ch
 		
-		mov ch, FrameStyle
-		mov cl, 205
-		mov bx, di
+		mov cl, DrawFrame_toCol
+		sub cl, DrawFrame_fromCol
+		dec cl
+		test cl, 1 SHL 7
+		jnz DrawFrame_loopH_end
+		
+		mov bl, DrawFrame_fromCol
 		mov bh, DrawFrame_fromRow
-		call SetChar
+		Coords2KeyM a, b
+		inc ax
+		mov di, ax
 		
-		mov ch, FrameStyle  ; TODO: Encapsulate as framestyle
-		mov cl, 205
-		mov bx, di
+		mov ah, 205
+		mov al, FrameStyle
+		
+		rep stosw
+		
+		
+		mov cl, DrawFrame_toCol
+		sub cl, DrawFrame_fromCol
+		dec cl
+		
+		mov bl, DrawFrame_fromCol
 		mov bh, DrawFrame_toRow
-		call SetChar
+		Coords2KeyM a, b
+		inc ax
+		mov di, ax
 		
-		inc di
-		jmp DrawFrame_loopH
+		mov ah, 205
+		mov al, FrameStyle
+		
+		rep stosw
+		
 DrawFrame_loopH_end:
 		
-		mov al, DrawFrame_fromRow
-		xor ah, ah
+		mov cl, DrawFrame_toRow
+		sub cl, DrawFrame_fromRow
+		dec cl
+		test cl, 1 SHL 7
+		jnz DrawFrame_loopH_end
+		
+		mov bl, DrawFrame_fromCol
+		mov bh, DrawFrame_fromRow
+		inc bh
+		Coords2KeyM a, b
+		
 		mov di, ax
-		inc di
+		mov ax, SetChar_width  ; TODO: Change previous macro params instead
+		shl ax, 1
+		
+		xor bh, bh
+		mov bl, DrawFrame_toCol
+		sub bl, DrawFrame_fromCol
+		shl bl, 1
+		jnc DrawFrame_loopV
+		xor bl, bl
 		
 DrawFrame_loopV:
-		mov al, DrawFrame_toRow
-		xor ah, ah
-		cmp di, ax
-		jae DrawFrame_loopV_end
+		mov es:[di], (FrameStyle SHL 8) OR 186
+		mov es:[di+bx], (FrameStyle SHL 8) OR 186
 		
-		mov ch, FrameStyle
-		mov cl, 186
-		mov bx, di
-		shl bx, 8
-		mov bl, DrawFrame_fromCol
-		call SetChar
+		add di, ax
+		loop DrawFrame_loopV
 		
-		mov ch, FrameStyle
-		mov cl, 186
-		mov bx, di
-		shl bx, 8
-		mov bl, DrawFrame_toCol
-		call SetChar
-		
-		inc di
-		jmp DrawFrame_loopV
 DrawFrame_loopV_end:
 		
 		
@@ -314,18 +342,7 @@ SetCharInit	proc near
 SetCharInit	endp
 
 
-; Same as Coords2Key, but embeddable
-; macro(result (register letter, can't be d), coords (register letter, can't be d))
-Coords2KeyM	macro result, coords
-		
-		mov result&x, SetChar_width
-		mul coords&h
-		xor coords&h, coords&h
-		add result&l, coords&l
-		adc result&h, 0
-		shl result&x, 1
-		
-		endm
+; Coords2KeyM moved up
 
 
 ; ax: coords Coords2Key(bh: row, bl: column)
@@ -340,9 +357,13 @@ Coords2Key	endp
 SetChar		proc near
 		Coords2KeyM a, b
 		
+		xchg ax, bx
+		
 		mov dx, SetChar_buf
 		mov es, dx
-		mov es:[ax], cx
+		mov es:[bx], cx
+		
+		xchg ax, bx
 		
 		ret
 
