@@ -6,7 +6,10 @@ VIDEOSEG	equ 0b800h
 FrameStyle	equ 00011111b
 
 org 100h
-Start:		mov ax, 0600h
+Start:		call SetCharInit
+		
+		
+		mov ax, 0600h
 		mov cx, 0000h
 		mov dx, 0ffffh
 		mov bh, 00111111b
@@ -118,6 +121,20 @@ Pause_loop_end:
 		int 21h
 
 
+; Same as Coords2Key, but embeddable
+; macro(result (register letter, can't be d), coords (register letter, can't be d))
+Coords2KeyM	macro result, coords
+		
+		mov result&x, SetChar_width
+		mul coords&h
+		xor coords&h, coords&h
+		add result&l, coords&l
+		adc result&h, 0
+		shl result&x, 1
+		
+		endm
+
+
 ; void DrawFrame(bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
 ; uses ax, ab, cx, dx, di, SetChar
 DrawFrame	proc near
@@ -180,60 +197,77 @@ DrawFrame_toCol		equ [bp-4]
 		mov bl, DrawFrame_fromCol
 		call SetChar
 		
-		mov al, DrawFrame_fromCol
-		xor ah, ah
-		mov di, ax
-		inc di
 		
-DrawFrame_loopH:
-		mov al, DrawFrame_toCol
-		xor ah, ah
-		cmp di, ax
-		jae DrawFrame_loopH_end
+		; es is already set by SetChar
+		cld
+		xor ch, ch
 		
-		mov ch, FrameStyle
-		mov cl, 205
-		mov bx, di
+		mov cl, DrawFrame_toCol
+		sub cl, DrawFrame_fromCol
+		dec cl
+		test cl, 1 SHL 7
+		jnz DrawFrame_loopH_end
+		
+		mov bl, DrawFrame_fromCol
 		mov bh, DrawFrame_fromRow
-		call SetChar
+		Coords2KeyM a, b
+		inc ax
+		inc ax
+		mov di, ax
 		
-		mov ch, FrameStyle  ; TODO: Encapsulate as framestyle
-		mov cl, 205
-		mov bx, di
+		mov ah, FrameStyle
+		mov al, 205
+		
+		rep stosw
+		
+		
+		mov cl, DrawFrame_toCol
+		sub cl, DrawFrame_fromCol
+		dec cl
+		
+		mov bl, DrawFrame_fromCol
 		mov bh, DrawFrame_toRow
-		call SetChar
+		Coords2KeyM a, b
+		inc ax
+		inc ax
+		mov di, ax
 		
-		inc di
-		jmp DrawFrame_loopH
+		mov ah, FrameStyle
+		mov al, 205
+		
+		rep stosw
+		
 DrawFrame_loopH_end:
 		
-		mov al, DrawFrame_fromRow
-		xor ah, ah
+		mov cl, DrawFrame_toRow
+		sub cl, DrawFrame_fromRow
+		dec cl
+		test cl, 1 SHL 7
+		jnz DrawFrame_loopH_end
+		
+		mov bl, DrawFrame_fromCol
+		mov bh, DrawFrame_fromRow
+		inc bh
+		Coords2KeyM a, b
+		
 		mov di, ax
-		inc di
+		mov ax, SetChar_width  ; TODO: Change previous macro params instead
+		shl ax, 1
+		
+		xor bh, bh
+		mov bl, DrawFrame_toCol
+		sub bl, DrawFrame_fromCol
+		shl bl, 1
+		jnc DrawFrame_loopV
+		xor bl, bl
 		
 DrawFrame_loopV:
-		mov al, DrawFrame_toRow
-		xor ah, ah
-		cmp di, ax
-		jae DrawFrame_loopV_end
+		mov word ptr es:[di],    (FrameStyle SHL 8) OR 186
+		mov word ptr es:[di+bx], (FrameStyle SHL 8) OR 186
 		
-		mov ch, FrameStyle
-		mov cl, 186
-		mov bx, di
-		shl bx, 8
-		mov bl, DrawFrame_fromCol
-		call SetChar
+		add di, ax
+		loop DrawFrame_loopV
 		
-		mov ch, FrameStyle
-		mov cl, 186
-		mov bx, di
-		shl bx, 8
-		mov bl, DrawFrame_toCol
-		call SetChar
-		
-		inc di
-		jmp DrawFrame_loopV
 DrawFrame_loopV_end:
 		
 		
@@ -243,76 +277,51 @@ DrawFrame_loopV_end:
 DrawFrame	endp
 
 
-; void FillRect(ax: symb, bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
-; uses ax, bx, cx, SetChar
-FillRect	proc near
-FillRect_fromRow	equ [bp-1]
-FillRect_fromCol	equ [bp-2]
-FillRect_toRow		equ [bp-3]
-FillRect_toCol		equ [bp-4]	
-FillRect_symb		equ [bp-6]
-		push bp
-		mov bp, sp
-		sub sp, 6
+; void SetCharInit()
+; uses: ax, bx, es
+SetCharInit	proc near
 		
-		mov FillRect_fromRow, bh
-		mov FillRect_fromCol, bl
-		mov FillRect_toRow, ch
-		mov FillRect_toCol, cl
-		mov FillRect_symb, ax
-		
-		mov ah, FillRect_fromRow
-		
-FillRect_loopV:	mov bh, FillRect_toRow
-		cmp ah, bh
-		jae FillRect_loopV_end
-		
-		mov al, FillRect_fromCol
-	FillRect_loopH:	mov bl, FillRect_toCol
-			cmp al, bl
-			jae FillRect_loopH_end
-			
-			mov cx, FillRect_symb
-			mov bx, ax
-			push ax
-			call SetChar
-			pop ax
-			
-			inc al
-			jmp FillRect_loopH
-	FillRect_loopH_end:
-		
-		inc ah
-		jmp FillRect_loopV
-FillRect_loopV_end:
-		
-		mov sp, bp
-		pop bp
-		ret
-FillRect	endp
-
-
-; void SetChar(cl: letter, ch: attrs, bh: row, bl: column)
-; uses: ax, bx, cx, dx, es
-SetChar		proc near
-		mov ax, 40h
-		mov es, ax
-		mov ax, es:4ah  ; 80 most often
-		mul bh
-		xor bh, bh
-		add bx, ax
-		shl bx, 1
-		
-		mov dx, VIDEOSEG
 		int 11h
 		xor ax, 30h
 		shl ax, 11
-		or ax, dx
-		mov es, ax
+		or ax, VIDEOSEG
+		mov SetChar_buf, ax
 		
+		mov ax, 40h
+		mov es, ax
+		mov ax, es:4ah  ; 80 most often
+		mov SetChar_width, ax
+		
+SetCharInit	endp
+
+
+; Coords2KeyM moved up
+
+
+; ax: coords Coords2Key(bh: row, bl: column)
+; uses: ax, (bx), dx
+Coords2Key	proc near
+		Coords2KeyM a, b
+Coords2Key	endp
+
+
+; ax: index SetChar(cl: letter, ch: attrs, bh: row, bl: column)
+; uses: ax, (bx), (cx), dx, es
+SetChar		proc near
+		Coords2KeyM a, b
+		
+		xchg ax, bx
+		
+		mov dx, SetChar_buf
+		mov es, dx
 		mov es:[bx], cx
 		
+		xchg ax, bx
+		
 		ret
+
+SetChar_width	dw 80
+SetChar_buf	dw 0
 SetChar		endp
 
 
@@ -404,94 +413,6 @@ DrawCmd_loop_end:
 		ret
 DrawCmd		endp
 
-
-; ; void DrawNum10(ax: num, bh: row, bl: column)
-; ; uses ax, bx, cx, dx, SetChar
-; DrawNum10	proc near
-		; ;add bl, 5
-		; add bl, 17
-		
-; DrawNum10_loop:	test ax, ax
-		; jz DrawNum10_loop_end
-		
-		; ;aam  ; This is faster than division and more convenient, although relies on ax being small enough
-		; mov cl, 10
-		; xor ch, ch
-		; xor dx, dx
-		; div cx
-		
-		; add dl, '0'
-		; mov cl, dl
-		; mov ch, (FrameStyle AND 11110000b) OR 0100b
-		
-		; push ax
-		; push bx
-		
-		; call SetChar
-		
-		; pop bx
-		; pop ax
-		
-		; dec bl
-		; jmp DrawNum10_loop
-; DrawNum10_loop_end:
-
-		; ret
-; DrawNum10	endp
-
-
-; ; macro(base)
-; ; void DrawNumL&base(ax: num, bh: row, bl: column)
-; ; uses ax, bx, cx, SetChar
-; DrawNumLB	macro base
-		
-; DrawNumL&base	proc near
-		; ;add bl, base
-		; add bl, 17
-		
-; DrawNumL&base&_loop:
-		; test ax, ax
-		; jz DrawNumL&base&_loop_end
-		
-		; mov cl, al
-		; and cl, (1 SHL base) - 1
-		
-		; cmp cl, 10
-		; jae DrawNumL&base&_bigDigit
-		
-		; add cl, '0'
-		
-		; jmp DrawNumL&base&_notBigDigit
-; DrawNumL&base&_bigDigit:
-		; add cl, 'A'-10
-; DrawNumL&base&_notBigDigit:
-		
-		; mov ch, (FrameStyle AND 11110000b) OR 0100b
-		
-		; shr ax, base
-		
-		; push ax
-		; push bx
-		
-		; call SetChar
-		
-		; pop bx
-		; pop ax
-		
-		; dec bl
-		; jmp DrawNumL&base&_loop
-; DrawNumL&base&_loop_end:
-
-		; ret
-; DrawNumL&base&	endp
-		
-		; endm
-
-
-
-; DrawNumLB	1 ;2
-; DrawNumLB	3 ;3
-; DrawNumLB	4 ;4
 
 
 .data

@@ -137,7 +137,7 @@ Coords2KeyM	macro result, coords
 
 
 ; void DrawFrame(bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
-; uses ax, ab, cx, dx, di, SetChar
+; uses ax, bx, cx, dx, di, SetChar
 DrawFrame	proc near
 
 DrawFrame_fromRow	equ [bp-1]
@@ -200,6 +200,7 @@ DrawFrame_toCol		equ [bp-4]
 		
 		
 		; es is already set by SetChar
+		cld
 		xor ch, ch
 		
 		mov cl, DrawFrame_toCol
@@ -212,10 +213,11 @@ DrawFrame_toCol		equ [bp-4]
 		mov bh, DrawFrame_fromRow
 		Coords2KeyM a, b
 		inc ax
+		inc ax
 		mov di, ax
 		
-		mov ah, 205
-		mov al, FrameStyle
+		mov ah, FrameStyle
+		mov al, 205
 		
 		rep stosw
 		
@@ -228,10 +230,11 @@ DrawFrame_toCol		equ [bp-4]
 		mov bh, DrawFrame_toRow
 		Coords2KeyM a, b
 		inc ax
+		inc ax
 		mov di, ax
 		
-		mov ah, 205
-		mov al, FrameStyle
+		mov ah, FrameStyle
+		mov al, 205
 		
 		rep stosw
 		
@@ -260,8 +263,8 @@ DrawFrame_loopH_end:
 		xor bl, bl
 		
 DrawFrame_loopV:
-		mov es:[di], (FrameStyle SHL 8) OR 186
-		mov es:[di+bx], (FrameStyle SHL 8) OR 186
+		mov word ptr es:[di],    (FrameStyle SHL 8) OR 186
+		mov word ptr es:[di+bx], (FrameStyle SHL 8) OR 186
 		
 		add di, ax
 		loop DrawFrame_loopV
@@ -273,55 +276,6 @@ DrawFrame_loopV_end:
 		pop bp
 		ret
 DrawFrame	endp
-
-
-; void FillRect(ax: symb, bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
-; uses ax, bx, cx, SetChar
-FillRect	proc near
-FillRect_fromRow	equ [bp-1]
-FillRect_fromCol	equ [bp-2]
-FillRect_toRow		equ [bp-3]
-FillRect_toCol		equ [bp-4]	
-FillRect_symb		equ [bp-6]
-		push bp
-		mov bp, sp
-		sub sp, 6
-		
-		mov FillRect_fromRow, bh
-		mov FillRect_fromCol, bl
-		mov FillRect_toRow, ch
-		mov FillRect_toCol, cl
-		mov FillRect_symb, ax
-		
-		mov ah, FillRect_fromRow
-		
-FillRect_loopV:	mov bh, FillRect_toRow
-		cmp ah, bh
-		jae FillRect_loopV_end
-		
-		mov al, FillRect_fromCol
-	FillRect_loopH:	mov bl, FillRect_toCol
-			cmp al, bl
-			jae FillRect_loopH_end
-			
-			mov cx, FillRect_symb
-			mov bx, ax
-			push ax
-			call SetChar
-			pop ax
-			
-			inc al
-			jmp FillRect_loopH
-	FillRect_loopH_end:
-		
-		inc ah
-		jmp FillRect_loopV
-FillRect_loopV_end:
-		
-		mov sp, bp
-		pop bp
-		ret
-FillRect	endp
 
 
 ; void SetCharInit()
@@ -438,9 +392,7 @@ DrawCmd_loop:	mov al, DrawCmd_i
 		xor cl, '$'
 		
 		mov ch, (FrameStyle AND 11110000b) OR 0100b
-		push bx
 		call SetChar
-		pop bx
 		
 		inc bl
 		
@@ -451,7 +403,7 @@ DrawCmd_nl:	mov bl, DrawCmd_origCol
 		
 DrawCmd_nl_skip:
 		inc si
-		dec word ptr DrawCmd_i
+		dec byte ptr DrawCmd_i
 		jmp DrawCmd_loop
 DrawCmd_loop_end:
 		
@@ -481,11 +433,7 @@ DrawNum10_loop:	test ax, ax
 		mov ch, (FrameStyle AND 11110000b) OR 0100b
 		
 		push ax
-		push bx
-		
 		call SetChar
-		
-		pop bx
 		pop ax
 		
 		dec bl
@@ -527,11 +475,7 @@ DrawNumL&base&_notBigDigit:
 		shr ax, base
 		
 		push ax
-		push bx
-		
 		call SetChar
-		
-		pop bx
 		pop ax
 		
 		dec bl
