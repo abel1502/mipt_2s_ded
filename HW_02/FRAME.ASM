@@ -6,7 +6,10 @@ VIDEOSEG	equ 0b800h
 FrameStyle	equ 00011111b
 
 org 100h
-Start:		mov ax, 0600h
+Start:		call SetCharInit
+		
+		
+		mov ax, 0600h
 		mov cx, 0000h
 		mov dx, 0ffffh
 		mov bh, 00111111b
@@ -293,27 +296,58 @@ FillRect_loopV_end:
 FillRect	endp
 
 
-; void SetChar(cl: letter, ch: attrs, bh: row, bl: column)
-; uses: ax, bx, cx, dx, es
-SetChar		proc near
-		mov ax, 40h
-		mov es, ax
-		mov ax, es:4ah  ; 80 most often
-		mul bh
-		xor bh, bh
-		add bx, ax
-		shl bx, 1
+; void SetCharInit()
+; uses: ax, bx, es
+SetCharInit	proc near
 		
-		mov dx, VIDEOSEG
 		int 11h
 		xor ax, 30h
 		shl ax, 11
-		or ax, dx
-		mov es, ax
+		or ax, VIDEOSEG
+		mov SetChar_buf, ax
 		
-		mov es:[bx], cx
+		mov ax, 40h
+		mov es, ax
+		mov ax, es:4ah  ; 80 most often
+		mov SetChar_width, ax
+		
+SetCharInit	endp
+
+
+; Same as Coords2Key, but embeddable
+; macro(result (register letter, can't be d), coords (register letter, can't be d))
+Coords2KeyM	macro result, coords
+		
+		mov result&x, SetChar_width
+		mul coords&h
+		xor coords&h, coords&h
+		add result&l, coords&l
+		adc result&h, 0
+		shl result&x, 1
+		
+		endm
+
+
+; ax: coords Coords2Key(bh: row, bl: column)
+; uses: ax, (bx), dx
+Coords2Key	proc near
+		Coords2KeyM a, b
+Coords2Key	endp
+
+
+; ax: index SetChar(cl: letter, ch: attrs, bh: row, bl: column)
+; uses: ax, (bx), (cx), dx, es
+SetChar		proc near
+		Coords2KeyM a, b
+		
+		mov dx, SetChar_buf
+		mov es, dx
+		mov es:[ax], cx
 		
 		ret
+
+SetChar_width	dw 80
+SetChar_buf	dw 0
 SetChar		endp
 
 
