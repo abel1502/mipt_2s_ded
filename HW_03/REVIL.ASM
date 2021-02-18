@@ -5,21 +5,85 @@
 VIDEOSEG	equ 0b800h
 FrameStyle	equ 00011111b
 
-org 100h
-Start:		call SetCharInit
+
+InstallIRQ	macro number
 		
-		mov ax, 3509h
+		mov ax, 3500h OR number
 		int 21h
 		mov ax, es
 		
-		cmp bx, offset Int9Handler
+		cmp bx, offset Int&number&Handler
 		je SkipInstall
 		
 		
-		mov Int9Handler_oldOff, bx
-		mov Int9Handler_oldSeg, ax
+		mov Int&number&Handler_oldOff, bx
+		mov Int&number&Handler_oldSeg, ax
 		
-		; As dos docs recommend it, we may as well free our environment block
+		; cli not needed
+		
+		mov ax, 2500h OR number
+		mov dx, offset Int&number&Handler
+		int 21h
+		
+		endm
+
+
+UninstallIRQ	macro number
+		
+		push ds
+		
+		mov ax, 2500h OR number
+		mov dx, Int&number&Handler_oldOff
+		mov bx, Int&number&Handler_oldSeg
+		mov ds, bx
+		
+		int 21h
+		
+		pop ds
+		
+		endm
+
+
+NextIRQ		macro number
+		
+		db 0eah  ; jmp far
+Int&number&Handler_oldOff	dw 0
+Int&number&Handler_oldSeg	dw 0
+		
+		endm
+
+
+org 100h
+Start:		call SetCharInit
+		
+		; mov ax, 3509h
+		; int 21h
+		; mov ax, es
+		
+		; cmp bx, offset Int9Handler
+		; je SkipInstall
+		
+		
+		; mov Int9Handler_oldOff, bx
+		; mov Int9Handler_oldSeg, ax
+		
+		; ; As the docs recommend, we may as well free our environment block
+		; push es
+		; push cs:2ch
+		; pop es
+		; mov ah, 49h
+		; int 21h
+		; pop es
+		
+		
+		; ; cli not needed
+		
+		; mov ax, 2509h
+		; mov dx, offset Int9Handler
+		; int 21h
+		
+		
+		; As the docs recommend, we may as well free our environment block
 		push es
 		push cs:2ch
 		pop es
@@ -27,19 +91,16 @@ Start:		call SetCharInit
 		int 21h
 		pop es
 		
+		InstallIRQ 9
 		
-		; cli not needed
-		
-		mov ax, 2509h
-		mov dx, offset Int9Handler
-		int 21h
-		
+		InstallIRQ 8
 		
 		mov ax, 3100h
 		mov dx, offset ProgEnd
 		shr dx, 4
 		inc dx
 		int 21h
+		
 		
 SkipInstall:	mov ah, 09h
 		mov dx, offset SkipMsg
@@ -49,6 +110,7 @@ SkipInstall:	mov ah, 09h
 		int 21h
 
 
+; INT 9 (kbd) handler
 Int9Handler	proc far
 		
 		;pusha
@@ -66,7 +128,7 @@ Int9Handler	proc far
 		mov ax, cs
 		mov ds, ax
 		
-		call SetCharInit  ; I guess we may always call it
+		;call SetCharInit  ; I guess we may always call it
 		
 		in al, 60h
 		mov ah, al
@@ -81,64 +143,16 @@ Int9Handler	proc far
 		jmp Int9Handler_next
 		
 Int9Handler_Num1:
-		;test al, al
-		;jnz Int9Handler_end
-		
-		mov bx, Int9Handler_FrameS
-		mov cx, Int9Handler_FrameE
-		call DrawFrame
-		
-		mov bx, Int9Handler_FrameT
-		mov cl, Int9Handler_LegendLen
-		mov si, offset Int9Handler_Legend
-		call DrawStr
-		
-		mov ax, Int9Handler_OldA
-		mov bx, Int9Handler_FrameTA
-		call DrawNumHex
-		
-		mov ax, Int9Handler_OldB
-		mov bx, Int9Handler_FrameTB
-		call DrawNumHex
-		
-		mov ax, Int9Handler_OldC
-		mov bx, Int9Handler_FrameTC
-		call DrawNumHex
-		
-		mov ax, Int9Handler_OldD
-		mov bx, Int9Handler_FrameTD
-		call DrawNumHex
+		xor Int8Handler_show, ah  ; TODO: ?
 		
 		jmp Int9Handler_end
 		
 Int9Handler_Num0:
-		push ds
+		UninstallIRQ 9
 		
-		mov ax, 2509h
-		mov dx, Int9Handler_oldOff
-		mov bx, Int9Handler_oldSeg
-		mov ds, bx
+		mov Int8Handler_kill, 1
 		
-		int 21h
-		
-		pop ds
-		
-		; Now I'll do something incredibly crotchy - that is freeing the memory block I reside in.
-		; That clearly contradicts a well-known russian saying "Don't cut the branch you're sitting on",
-		; but I believe this shouldn't overwrite us, thanks to how DOS doesn't support multithreading.
-		; That should get us enough time to shut ourselves down as well. The only thing that has a chance
-		; to interrupt us is a timer tick (which I intend to intercept myself as soon as I finish the 
-		; keyboard part - then I'll move this bit of code there and it will become completely invincible).
-		; But even now a disruption is unlikely - that would need the timer to request a memory block (or
-		; start another program, which does that intrinsically), and that doesn't seem like things a timer
-		; would ever want to do.
-		
-		push es
-		push cs
-		pop es
-		mov ah, 49h
-		int 21h
-		pop es
+		; Further shutdown happens within timer interrupt
 		
 		; jmp Int9Handler_end ; Happens automatically
 		
@@ -168,39 +182,176 @@ Int9Handler_next:
 		
 		;popa
 		
-		db 0eah  ; jmp far
-Int9Handler_oldOff	dw 0
-Int9Handler_oldSeg	dw 0
-
-Int9Handler_Legend	db 'ax: 0000', 0ah, \
-			   'bx: 0000', 0ah, \
-			   'cx: 0000', 0ah, \
-			   'dx: 0000'
-Int9Handler_LegendLen	equ $ - Int9Handler_Legend
-
-Int9Handler_FrameSX	equ 2
-Int9Handler_FrameSY	equ 1
-Int9Handler_FrameW	equ 11
-Int9Handler_FrameH	equ 5
-Int9Handler_FrameEX	equ Int9Handler_FrameSX + Int9Handler_FrameW
-Int9Handler_FrameEY	equ Int9Handler_FrameSY + Int9Handler_FrameH
-
-Int9Handler_FrameS	equ (Int9Handler_FrameSY SHL 8) OR Int9Handler_FrameSX
-Int9Handler_FrameE	equ (Int9Handler_FrameEY SHL 8) OR Int9Handler_FrameEX
-
-Int9Handler_FrameT	equ Int9Handler_FrameS + 0102h
-Int9Handler_FrameTA	equ Int9Handler_FrameT + 0003h
-Int9Handler_FrameTB	equ Int9Handler_FrameTA + 0100h
-Int9Handler_FrameTC	equ Int9Handler_FrameTB + 0100h
-Int9Handler_FrameTD	equ Int9Handler_FrameTC + 0100h
-
-Int9Handler_OldA	equ [bp+18]
-Int9Handler_OldB	equ [bp+12]
-Int9Handler_OldC	equ [bp+16]
-Int9Handler_OldD	equ [bp+14]
+		NextIRQ 9
 
 Int9Handler	endp
 
+
+; INT 8 (timer) handler
+Int8Handler	proc far
+		
+		;push ax
+		;mov al, 20h
+		;out 20h, al
+		;pop ax
+		;iret
+		
+		;pusha
+		
+		;mov ax, 0ah
+		;mov bx, 0bh
+		;mov cx, 0ch
+		;mov dx, 0dh
+		
+		pusha
+		push es ds
+		
+		mov bp, sp  ; Old bp saved by pusha
+		
+		mov ax, cs
+		mov ds, ax
+		
+		
+		test Int8Handler_kill, 1
+		jnz Int8Handler_detach
+		
+		
+		mov al, Int8Handler_ticks
+		test al, al
+		jz Int8Handler_doTick
+		jmp Int8Handler_next
+Int8Handler_doTick:
+		mov Int8Handler_ticks, Int8Handler_interval
+		
+		call SetCharInit  ; I guess we may always call it
+		
+		
+		test Int8Handler_show, 1
+		jnz Int8Handler_maybeShow  ; TODO: Restore videobuf
+		jmp Int8Handler_maybeHide
+		
+Int8Handler_maybeShow:
+		test Int8Handler_wasShown, 1
+		jnz Int8Handler_notShow
+		
+		; TODO: Save segment under frame
+		mov Int8Handler_wasShown, 1
+		
+Int8Handler_notShow:
+		mov bx, Int8Handler_FrameS
+		mov cx, Int8Handler_FrameE
+		call DrawFrame
+		
+		mov bx, Int8Handler_FrameT
+		mov cl, Int8Handler_LegendLen
+		mov si, offset Int8Handler_Legend
+		call DrawStr
+		
+		mov ax, Int8Handler_OldA
+		mov bx, Int8Handler_FrameTA
+		call DrawNumHex
+		
+		mov ax, Int8Handler_OldB
+		mov bx, Int8Handler_FrameTB
+		call DrawNumHex
+		
+		mov ax, Int8Handler_OldC
+		mov bx, Int8Handler_FrameTC
+		call DrawNumHex
+		
+		mov ax, Int8Handler_OldD
+		mov bx, Int8Handler_FrameTD
+		call DrawNumHex
+		
+		jmp Int8Handler_next
+		
+Int8Handler_detach:
+		UninstallIRQ 8
+		
+		; TODO: Hide frame
+		
+		; TODO: Verify interrupt isn't hijacked and refuse to stop in that case (and same for int8)
+		
+		; Now I'll do something incredibly crotchy - that is freeing the memory block I reside in.
+		; That clearly contradicts a well-known russian saying "Don't cut the branch you're sitting on",
+		; but I believe this shouldn't overwrite us, thanks to how DOS doesn't support multithreading.
+		; That should get us enough time to shut ourselves down as well. The only thing that has a chance
+		; to interrupt us is a timer tick (which I intend to intercept myself as soon as I finish the 
+		; keyboard part - then I'll move this bit of code there and it will become completely invincible).
+		; But even now a disruption is unlikely - that would need the timer to request a memory block (or
+		; start another program, which does that intrinsically), and that doesn't seem like things a timer
+		; would ever want to do.
+		
+		push es
+		push cs
+		pop es
+		mov ah, 49h
+		int 21h
+		pop es
+		
+		jmp Int8Handler_next
+		
+Int8Handler_maybeHide:
+		test Int8Handler_wasShown, 1
+		jz Int8Handler_next
+		
+		; Restore saved videobuf from under frame
+		mov ax, 0600h
+		mov cx, Int8Handler_FrameS
+		mov dx, Int8Handler_FrameE
+		mov bh, 7h
+		int 10h
+		
+		mov Int8Handler_wasShown, 0
+		
+		jmp Int8Handler_next
+		
+Int8Handler_next:
+		dec Int8Handler_ticks
+		
+		pop ds es
+		popa
+		
+		;popa
+		
+		NextIRQ 8
+		
+
+Int8Handler_interval	equ 4
+Int8Handler_ticks	db 0
+
+Int8Handler_show	db 0
+Int8Handler_wasShown	db 0
+Int8Handler_kill	db 0
+
+Int8Handler_Legend	db 'ax: 0000', 0ah, \
+			   'bx: 0000', 0ah, \
+			   'cx: 0000', 0ah, \
+			   'dx: 0000'
+Int8Handler_LegendLen	equ $ - Int8Handler_Legend
+
+Int8Handler_FrameSX	equ 2
+Int8Handler_FrameSY	equ 1
+Int8Handler_FrameW	equ 11
+Int8Handler_FrameH	equ 5
+Int8Handler_FrameEX	equ Int8Handler_FrameSX + Int8Handler_FrameW
+Int8Handler_FrameEY	equ Int8Handler_FrameSY + Int8Handler_FrameH
+
+Int8Handler_FrameS	equ (Int8Handler_FrameSY SHL 8) OR Int8Handler_FrameSX
+Int8Handler_FrameE	equ (Int8Handler_FrameEY SHL 8) OR Int8Handler_FrameEX
+
+Int8Handler_FrameT	equ Int8Handler_FrameS + 0102h
+Int8Handler_FrameTA	equ Int8Handler_FrameT + 0003h
+Int8Handler_FrameTB	equ Int8Handler_FrameTA + 0100h
+Int8Handler_FrameTC	equ Int8Handler_FrameTB + 0100h
+Int8Handler_FrameTD	equ Int8Handler_FrameTC + 0100h
+
+Int8Handler_OldA	equ [bp+18]
+Int8Handler_OldB	equ [bp+12]
+Int8Handler_OldC	equ [bp+16]
+Int8Handler_OldD	equ [bp+14]
+
+Int8Handler	endp
 
 
 ; Same as Coords2Key, but embeddable
