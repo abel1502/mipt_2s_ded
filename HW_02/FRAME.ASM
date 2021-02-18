@@ -293,6 +293,8 @@ SetCharInit	proc near
 		mov ax, es:4ah  ; 80 most often
 		mov SetChar_width, ax
 		
+		ret
+		
 SetCharInit	endp
 
 
@@ -303,6 +305,8 @@ SetCharInit	endp
 ; uses: ax, (bx), dx
 Coords2Key	proc near
 		Coords2KeyM a, b
+		
+		ret
 Coords2Key	endp
 
 
