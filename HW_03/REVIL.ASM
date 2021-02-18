@@ -53,6 +53,20 @@ Int&number&Handler_oldSeg	dw 0
 		endm
 
 
+; Same as Coords2Key, but embeddable
+; macro(result (register letter, can't be d), coords (register letter, can't be d))
+Coords2KeyM	macro result, coords
+		
+		mov result&x, SetChar_width
+		mul coords&h
+		xor coords&h, coords&h
+		add result&l, coords&l
+		adc result&h, 0
+		shl result&x, 1
+		
+		endm
+
+
 org 100h
 Start:		call SetCharInit
 		
@@ -235,6 +249,10 @@ Int8Handler_maybeShow:
 		jnz Int8Handler_notShow
 		
 		; TODO: Save segment under frame
+		mov bx, Int8Handler_FrameS
+		mov cx, Int8Handler_FrameE
+		call SaveBG
+		
 		mov Int8Handler_wasShown, 1
 		
 Int8Handler_notShow:
@@ -296,11 +314,9 @@ Int8Handler_maybeHide:
 		jz Int8Handler_next
 		
 		; Restore saved videobuf from under frame
-		mov ax, 0600h
-		mov cx, Int8Handler_FrameS
-		mov dx, Int8Handler_FrameE
-		mov bh, 7h
-		int 10h
+		mov bx, Int8Handler_FrameS
+		mov cx, Int8Handler_FrameE
+		call RestoreBG
 		
 		mov Int8Handler_wasShown, 0
 		
@@ -351,21 +367,114 @@ Int8Handler_OldB	equ [bp+12]
 Int8Handler_OldC	equ [bp+16]
 Int8Handler_OldD	equ [bp+14]
 
+Int8Handler_BG		db (((Int8Handler_FrameH + 2) * (Int8Handler_FrameW + 2)) * 2)dup(?)
+
 Int8Handler	endp
 
 
-; Same as Coords2Key, but embeddable
-; macro(result (register letter, can't be d), coords (register letter, can't be d))
-Coords2KeyM	macro result, coords
+; void SaveBG(bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
+; uses ax, bx, cx, dx, si, di
+SaveBG		proc near
+		push es ds
 		
-		mov result&x, SetChar_width
-		mul coords&h
-		xor coords&h, coords&h
-		add result&l, coords&l
-		adc result&h, 0
-		shl result&x, 1
+		inc ch
+		inc cl
 		
-		endm
+		push bx
+		Coords2KeyM a, b
+		pop bx
+		
+		mov si, ax
+		mov di, offset Int8Handler_BG
+		
+		mov dx, cx
+		sub dx, bx  ; actually dl -= bl; dh -= bh
+		
+		push SetChar_buf
+		push ds
+		pop es
+		pop ds
+		
+		cld
+		
+		xor ch, ch
+		
+SaveBG_loop:	test dh, dh
+		jz SaveBG_loop_end
+		
+		mov cl, dl
+		
+		rep movsw
+		
+		dec dh
+		mov ax, es:SetChar_width
+		shl ax, 1
+		add si, ax
+		xor ah, ah
+		mov al, dl
+		shl ax, 1
+		sub si, ax
+		
+		jmp SaveBG_loop
+SaveBG_loop_end:
+		
+		pop ds es
+		
+		ret
+SaveBG		endp
+
+
+; void RestoreBG(bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
+; uses ax, bx, cx, dx, si, di
+RestoreBG	proc near
+		push es
+		
+		inc ch
+		inc cl
+		
+		push bx
+		Coords2KeyM a, b
+		pop bx
+		
+		mov si, offset Int8Handler_BG
+		mov di, ax
+		
+		mov dx, cx
+		sub dx, bx  ; actually dl -= bl; dh -= bh
+		
+		push SetChar_buf
+		pop es
+		
+		;mov word ptr ds:[si], 7h SHL 8 OR '!'
+		;mov byte ptr ds:[si], '!'
+		
+		cld
+		
+		xor ch, ch
+		
+RestoreBG_loop:	test dh, dh
+		jz RestoreBG_loop_end
+		
+		mov cl, dl
+		
+		rep movsw
+		
+		dec dh
+		mov ax, SetChar_width
+		shl ax, 1
+		add di, ax
+		xor ah, ah
+		mov al, dl
+		shl ax, 1
+		sub di, ax
+		
+		jmp RestoreBG_loop
+RestoreBG_loop_end:
+		
+		pop es
+		
+		ret
+RestoreBG	endp
 
 
 ; void DrawFrame(bh: fromRow, bl: fromCol, ch: toRow, cl: toCol)
