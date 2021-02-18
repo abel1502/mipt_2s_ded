@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 1
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 1
 revil.asm
 
 
@@ -60,7 +60,7 @@ revil.asm
      55
      56				     ; Same as Coords2Key, but embeddable
      57				     ; macro(result (register letter, can't be d), coords (register letter, can't be d))
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 2
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 2
 revil.asm
 
 
@@ -78,7 +78,7 @@ revil.asm
      68
      69
      70				     org 100h
-     71	0100  E8 03DC		     Start:	     call SetCharInit
+     71	0100  E8 03EF		     Start:	     call SetCharInit
      72
      73						     ; mov ax, 3509h
      74						     ; int 21h
@@ -122,7 +122,7 @@ revil.asm
 1   112	0114  8C C0				     mov ax, es
 1   113
 1   114	0116  81 FB 015Fr			     cmp bx, offset Int9Handler
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 3
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 3
 revil.asm
 
 
@@ -150,8 +150,8 @@ revil.asm
 1   135	0136  74 1B				     je	SkipInstall
 1   136
 1   137
-1   138	0138  89 1E 0284r			     mov Int8Handler_oldOff, bx
-1   139	013C  A3 0286r				     mov Int8Handler_oldSeg, ax
+1   138	0138  89 1E 0297r			     mov Int8Handler_oldOff, bx
+1   139	013C  A3 0299r				     mov Int8Handler_oldSeg, ax
 1   140
 1   141						     ; cli not needed
 1   142
@@ -161,7 +161,7 @@ revil.asm
 1   146
     147
     148	0147  B8 3100				     mov ax, 3100h
-    149	014A  BA 05D3r				     mov dx, offset ProgEnd
+    149	014A  BA 05E6r				     mov dx, offset ProgEnd
     150	014D  C1 EA 04				     shr dx, 4
     151	0150  42				     inc dx
     152	0151  CD 21				     int 21h
@@ -184,7 +184,7 @@ revil.asm
     169						     ;mov bx, 0bh
     170						     ;mov cx, 0ch
     171						     ;mov dx, 0dh
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 4
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 4
 revil.asm
 
 
@@ -213,7 +213,7 @@ revil.asm
     193	0179  EB 35 90				     jmp Int9Handler_next
     194
     195	017C			     Int9Handler_Num1:
-    196	017C  30 26 0289r			     xor Int8Handler_show, ah  ; TODO: ?
+    196	017C  30 26 029Cr			     xor Int8Handler_show, ah  ; TODO: ?
     197
     198	0180  EB 18 90				     jmp Int9Handler_end
     199
@@ -232,7 +232,7 @@ revil.asm
 1   212	0193  1F				     pop ds
 1   213
     214
-    215	0194  C6 06 028Br 01 90			     mov Int8Handler_kill, 1
+    215	0194  C6 06 029Er 01 90			     mov Int8Handler_kill, 1
     216
     217						     ; Further shutdown	happens	within timer interrupt
     218
@@ -246,7 +246,7 @@ revil.asm
     226	01A2  8A C4				     mov al, ah
     227	01A4  90				     nop
     228	01A5  90				     nop  ; As recommended
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 5
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 5
 revil.asm
 
 
@@ -304,81 +304,81 @@ revil.asm
     279	01BF  8E D8				     mov ds, ax
     280
     281
-    282	01C1  F6 06 028Br 01 90			     test Int8Handler_kill, 1
+    282	01C1  F6 06 029Er 01 90			     test Int8Handler_kill, 1
     283	01C7  75 7B				     jnz Int8Handler_detach
     284
     285
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 6
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 6
 revil.asm
 
 
 
-    286	01C9  A0 0288r				     mov al, Int8Handler_ticks
+    286	01C9  A0 029Br				     mov al, Int8Handler_ticks
     287	01CC  84 C0				     test al, al
     288	01CE  74 03				     jz	Int8Handler_doTick
-    289	01D0  E9 00A9				     jmp Int8Handler_next
+    289	01D0  E9 00BC				     jmp Int8Handler_next
     290	01D3			     Int8Handler_doTick:
-    291	01D3  C6 06 0288r 04 90			     mov Int8Handler_ticks, Int8Handler_interval
+    291	01D3  C6 06 029Br 04 90			     mov Int8Handler_ticks, Int8Handler_interval
     292
-    293	01D9  E8 0303				     call SetCharInit  ; I guess we may	always call it
+    293	01D9  E8 0316				     call SetCharInit  ; I guess we may	always call it
     294
     295
-    296	01DC  F6 06 0289r 01 90			     test Int8Handler_show, 1
+    296	01DC  F6 06 029Cr 01 90			     test Int8Handler_show, 1
     297	01E2  75 03				     jnz Int8Handler_maybeShow	; TODO:	Restore	videobuf
-    298	01E4  EB 7A 90				     jmp Int8Handler_maybeHide
+    298	01E4  E9 008C				     jmp Int8Handler_maybeHide
     299
     300	01E7			     Int8Handler_maybeShow:
-    301	01E7  F6 06 028Ar 01 90			     test Int8Handler_wasShown,	1
+    301	01E7  F6 06 029Dr 01 90			     test Int8Handler_wasShown,	1
     302	01ED  75 11				     jnz Int8Handler_notShow
     303
     304						     ; TODO: Save segment under	frame
     305	01EF  BB 0102 90			     mov bx, Int8Handler_FrameS
     306	01F3  B9 060D 90			     mov cx, Int8Handler_FrameE
-    307	01F7  E8 016B				     call SaveBG
+    307	01F7  E8 017E				     call SaveBG
     308
-    309	01FA  C6 06 028Ar 01 90			     mov Int8Handler_wasShown, 1
+    309	01FA  C6 06 029Dr 01 90			     mov Int8Handler_wasShown, 1
     310
     311	0200			     Int8Handler_notShow:
     312	0200  BB 0102 90			     mov bx, Int8Handler_FrameS
     313	0204  B9 060D 90			     mov cx, Int8Handler_FrameE
-    314	0208  E8 01E5				     call DrawFrame
+    314	0208  E8 01F8				     call DrawFrame
     315
     316	020B  BB 0204 90			     mov bx, Int8Handler_FrameT
     317	020F  B1 23 90 90			     mov cl, Int8Handler_LegendLen
-    318	0213  BE 028Cr				     mov si, offset Int8Handler_Legend
-    319	0216  E8 033A				     call DrawStr
+    318	0213  BE 029Fr				     mov si, offset Int8Handler_Legend
+    319	0216  E8 034D				     call DrawStr
     320
     321	0219  8B 46 12				     mov ax, Int8Handler_OldA
     322	021C  BB 0207 90			     mov bx, Int8Handler_FrameTA
-    323	0220  E8 0387				     call DrawNumHex
+    323	0220  E8 039A				     call DrawNumHex
     324
     325	0223  8B 46 0C				     mov ax, Int8Handler_OldB
     326	0226  BB 0307 90			     mov bx, Int8Handler_FrameTB
-    327	022A  E8 037D				     call DrawNumHex
+    327	022A  E8 0390				     call DrawNumHex
     328
     329	022D  8B 46 10				     mov ax, Int8Handler_OldC
     330	0230  BB 0407 90			     mov bx, Int8Handler_FrameTC
-    331	0234  E8 0373				     call DrawNumHex
+    331	0234  E8 0386				     call DrawNumHex
     332
     333	0237  8B 46 0E				     mov ax, Int8Handler_OldD
     334	023A  BB 0507 90			     mov bx, Int8Handler_FrameTD
-    335	023E  E8 0369				     call DrawNumHex
+    335	023E  E8 037C				     call DrawNumHex
     336
-    337	0241  EB 39 90				     jmp Int8Handler_next
+    337	0241  EB 4C 90				     jmp Int8Handler_next
     338
     339	0244			     Int8Handler_detach:
     340						     UninstallIRQ 8
 1   341
 1   342	0244  1E				     push ds
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 7
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 7
 revil.asm
 
 
 
 1   343
 1   344	0245  B8 2508				     mov ax, 2500h OR 8
-1   345	0248  8B 16 0284r			     mov dx, Int8Handler_oldOff
-1   346	024C  8B 1E 0286r			     mov bx, Int8Handler_oldSeg
+1   345	0248  8B 16 0297r			     mov dx, Int8Handler_oldOff
+1   346	024C  8B 1E 0299r			     mov bx, Int8Handler_oldSeg
 1   347	0250  8E DB				     mov ds, bx
 1   348
 1   349	0252  CD 21				     int 21h
@@ -386,664 +386,671 @@ revil.asm
 1   351	0254  1F				     pop ds
 1   352
     353
-    354						     ; TODO: Hide frame
-    355
-    356						     ; TODO: Verify interrupt isn't hijacked and refuse	to stop	in that	case (and   +
-    357				     same for int8)
-    358
-    359						     ; Now I'll	do something incredibly	crotchy	- that is freeing the memory block I+
-    360				     reside in.
-    361						     ; That clearly contradicts	a well-known russian saying "Don't cut the branch   +
-    362				     you're sitting on",
-    363						     ; but I believe this shouldn't overwrite us, thanks to how	DOS doesn't support +
-    364				     multithreading.
-    365						     ; That should get us enough time to shut ourselves	down as	well. The only thing+
-    366				     that has a	chance
-    367						     ; to interrupt us is a timer tick (which I	intend to intercept myself as soon  +
-    368				     as	I finish the
-    369						     ; keyboard	part - then I'll move this bit of code there and it will become	    +
-    370				     completely	invincible).
-    371						     ; But even	now a disruption is unlikely - that would need the timer to request +
-    372				     a memory block (or
-    373						     ; start another program, which does that intrinsically), and that doesn't seem +
-    374				     like things a timer
-    375						     ; would ever want to do.
-    376
-    377	0255  06				     push es
-    378	0256  0E				     push cs
-    379	0257  07				     pop es
-    380	0258  B4 49				     mov ah, 49h
-    381	025A  CD 21				     int 21h
-    382	025C  07				     pop es
+    354	0255  F6 06 029Cr 01 90			     test Int8Handler_show, 1
+    355	025B  74 0B				     jz	Int8Handler_detach_noHide
+    356
+    357	025D  BB 0102 90			     mov bx, Int8Handler_FrameS
+    358	0261  B9 060D 90			     mov cx, Int8Handler_FrameE
+    359	0265  E8 0158				     call RestoreBG
+    360
+    361	0268			     Int8Handler_detach_noHide:
+    362
+    363						     ; TODO: Verify interrupt isn't hijacked and refuse	to stop	in that	case (and   +
+    364				     same for int8)
+    365
+    366						     ; Now I'll	do something incredibly	crotchy	- that is freeing the memory block I+
+    367				     reside in.
+    368						     ; That clearly contradicts	a well-known russian saying "Don't cut the branch   +
+    369				     you're sitting on",
+    370						     ; but I believe this shouldn't overwrite us, thanks to how	DOS doesn't support +
+    371				     multithreading.
+    372						     ; That should get us enough time to shut ourselves	down as	well. The only thing+
+    373				     that has a	chance
+    374						     ; to interrupt us is a timer tick (which I	intend to intercept myself as soon  +
+    375				     as	I finish the
+    376						     ; keyboard	part - then I'll move this bit of code there and it will become	    +
+    377				     completely	invincible).
+    378						     ; But even	now a disruption is unlikely - that would need the timer to request +
+    379				     a memory block (or
+    380						     ; start another program, which does that intrinsically), and that doesn't seem +
+    381				     like things a timer
+    382						     ; would ever want to do.
     383
-    384	025D  EB 1D 90				     jmp Int8Handler_next
-    385
-    386	0260			     Int8Handler_maybeHide:
-    387	0260  F6 06 028Ar 01 90			     test Int8Handler_wasShown,	1
-    388	0266  74 14				     jz	Int8Handler_next
-    389
-    390						     ; Restore saved videobuf from under frame
-    391	0268  BB 0102 90			     mov bx, Int8Handler_FrameS
-    392	026C  B9 060D 90			     mov cx, Int8Handler_FrameE
-    393	0270  E8 013A				     call RestoreBG
-    394
-    395	0273  C6 06 028Ar 00 90			     mov Int8Handler_wasShown, 0
+    384	0268  06				     push es
+    385	0269  0E				     push cs
+    386	026A  07				     pop es
+    387	026B  B4 49				     mov ah, 49h
+    388	026D  CD 21				     int 21h
+    389	026F  07				     pop es
+    390
+    391	0270  EB 1D 90				     jmp Int8Handler_next
+    392
+    393	0273			     Int8Handler_maybeHide:
+    394	0273  F6 06 029Dr 01 90			     test Int8Handler_wasShown,	1
+    395	0279  74 14				     jz	Int8Handler_next
     396
-    397	0279  EB 01 90				     jmp Int8Handler_next
-    398
-    399	027C			     Int8Handler_next:
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 8
+    397						     ; Restore saved videobuf from under frame
+    398	027B  BB 0102 90			     mov bx, Int8Handler_FrameS
+    399	027F  B9 060D 90			     mov cx, Int8Handler_FrameE
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 8
 revil.asm
 
 
 
-    400	027C  FE 0E 0288r			     dec Int8Handler_ticks
+    400	0283  E8 013A				     call RestoreBG
     401
-    402	0280  1F 07				     pop ds es
-    403	0282  61				     popa
-    404
-    405						     ;popa
-    406
-    407						     NextIRQ 8
-1   408
-1   409	0283  EA				     db	0eah  ;	jmp far
-1   410	0284  0000		     Int8Handler_oldOff	     dw	0
-1   411	0286  0000		     Int8Handler_oldSeg	     dw	0
-1   412
+    402	0286  C6 06 029Dr 00 90			     mov Int8Handler_wasShown, 0
+    403
+    404	028C  EB 01 90				     jmp Int8Handler_next
+    405
+    406	028F			     Int8Handler_next:
+    407	028F  FE 0E 029Br			     dec Int8Handler_ticks
+    408
+    409	0293  1F 07				     pop ds es
+    410	0295  61				     popa
+    411
+    412						     ;popa
     413
-    414
-    415	      =0004		     Int8Handler_interval    equ 4
-    416	0288  00		     Int8Handler_ticks	     db	0
-    417
-    418	0289  00		     Int8Handler_show	     db	0
-    419	028A  00		     Int8Handler_wasShown    db	0
-    420	028B  00		     Int8Handler_kill	     db	0
+    414						     NextIRQ 8
+1   415
+1   416	0296  EA				     db	0eah  ;	jmp far
+1   417	0297  0000		     Int8Handler_oldOff	     dw	0
+1   418	0299  0000		     Int8Handler_oldSeg	     dw	0
+1   419
+    420
     421
-    422	028C  61 78 3A 20 30 30	30+  Int8Handler_Legend	     db	'ax: 0000', 0ah, \
-    423	      30 0A 62 78 3A 20	30+				'bx: 0000', 0ah, \
-    424	      30 30 30 0A 63 78	3A+				'cx: 0000', 0ah, \
-    425	      20 30 30 30 30 0A	64+				'dx: 0000'
-    426	      78 3A 20 30 30 30	30
-    427	      =0023		     Int8Handler_LegendLen   equ $ - Int8Handler_Legend
+    422	      =0004		     Int8Handler_interval    equ 4
+    423	029B  00		     Int8Handler_ticks	     db	0
+    424
+    425	029C  00		     Int8Handler_show	     db	0
+    426	029D  00		     Int8Handler_wasShown    db	0
+    427	029E  00		     Int8Handler_kill	     db	0
     428
-    429	      =0002		     Int8Handler_FrameSX     equ 2
-    430	      =0001		     Int8Handler_FrameSY     equ 1
-    431	      =000B		     Int8Handler_FrameW	     equ 11
-    432	      =0005		     Int8Handler_FrameH	     equ 5
-    433	      =000D		     Int8Handler_FrameEX     equ Int8Handler_FrameSX + Int8Handler_FrameW
-    434	      =0006		     Int8Handler_FrameEY     equ Int8Handler_FrameSY + Int8Handler_FrameH
+    429	029F  61 78 3A 20 30 30	30+  Int8Handler_Legend	     db	'ax: 0000', 0ah, \
+    430	      30 0A 62 78 3A 20	30+				'bx: 0000', 0ah, \
+    431	      30 30 30 0A 63 78	3A+				'cx: 0000', 0ah, \
+    432	      20 30 30 30 30 0A	64+				'dx: 0000'
+    433	      78 3A 20 30 30 30	30
+    434	      =0023		     Int8Handler_LegendLen   equ $ - Int8Handler_Legend
     435
-    436	      =0102		     Int8Handler_FrameS	     equ (Int8Handler_FrameSY SHL 8) OR	Int8Handler_FrameSX
-    437	      =060D		     Int8Handler_FrameE	     equ (Int8Handler_FrameEY SHL 8) OR	Int8Handler_FrameEX
-    438
-    439	      =0204		     Int8Handler_FrameT	     equ Int8Handler_FrameS + 0102h
-    440	      =0207		     Int8Handler_FrameTA     equ Int8Handler_FrameT + 0003h
-    441	      =0307		     Int8Handler_FrameTB     equ Int8Handler_FrameTA + 0100h
-    442	      =0407		     Int8Handler_FrameTC     equ Int8Handler_FrameTB + 0100h
-    443	      =0507		     Int8Handler_FrameTD     equ Int8Handler_FrameTC + 0100h
-    444
-    445	      =	[bp+18]		     Int8Handler_OldA	     equ [bp+18]
-    446	      =	[bp+12]		     Int8Handler_OldB	     equ [bp+12]
-    447	      =	[bp+16]		     Int8Handler_OldC	     equ [bp+16]
-    448	      =	[bp+14]		     Int8Handler_OldD	     equ [bp+14]
-    449
-    450	02AF  B6*(??)		     Int8Handler_BG	     db	(((Int8Handler_FrameH +	2) * (Int8Handler_FrameW + 2)) * 2)dup(?)
+    436	      =0002		     Int8Handler_FrameSX     equ 2
+    437	      =0001		     Int8Handler_FrameSY     equ 1
+    438	      =000B		     Int8Handler_FrameW	     equ 11
+    439	      =0005		     Int8Handler_FrameH	     equ 5
+    440	      =000D		     Int8Handler_FrameEX     equ Int8Handler_FrameSX + Int8Handler_FrameW
+    441	      =0006		     Int8Handler_FrameEY     equ Int8Handler_FrameSY + Int8Handler_FrameH
+    442
+    443	      =0102		     Int8Handler_FrameS	     equ (Int8Handler_FrameSY SHL 8) OR	Int8Handler_FrameSX
+    444	      =060D		     Int8Handler_FrameE	     equ (Int8Handler_FrameEY SHL 8) OR	Int8Handler_FrameEX
+    445
+    446	      =0204		     Int8Handler_FrameT	     equ Int8Handler_FrameS + 0102h
+    447	      =0207		     Int8Handler_FrameTA     equ Int8Handler_FrameT + 0003h
+    448	      =0307		     Int8Handler_FrameTB     equ Int8Handler_FrameTA + 0100h
+    449	      =0407		     Int8Handler_FrameTC     equ Int8Handler_FrameTB + 0100h
+    450	      =0507		     Int8Handler_FrameTD     equ Int8Handler_FrameTC + 0100h
     451
-    452	0365			     Int8Handler     endp
-    453
-    454
-    455				     ; void SaveBG(bh: fromRow,	bl: fromCol, ch: toRow,	cl: toCol)
-    456				     ; uses ax,	bx, cx,	dx, si,	di
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 9
+    452	      =	[bp+18]		     Int8Handler_OldA	     equ [bp+18]
+    453	      =	[bp+12]		     Int8Handler_OldB	     equ [bp+12]
+    454	      =	[bp+16]		     Int8Handler_OldC	     equ [bp+16]
+    455	      =	[bp+14]		     Int8Handler_OldD	     equ [bp+14]
+    456
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 9
 revil.asm
 
 
 
-    457	0365			     SaveBG	     proc near
-    458	0365  06 1E				     push es ds
-    459
-    460	0367  FE C5				     inc ch
-    461	0369  FE C1				     inc cl
-    462
-    463	036B  53				     push bx
-    464						     Coords2KeyM a, b
-1   465
-1   466	036C  A1 0523r				     mov ax, SetChar_width
-1   467	036F  F6 E7				     mul bh
-1   468	0371  32 FF				     xor bh, bh
-1   469	0373  02 C3				     add al, bl
-1   470	0375  80 D4 00				     adc ah, 0
-1   471	0378  D1 E0				     shl ax, 1
+    457	02C2  B6*(??)		     Int8Handler_BG	     db	(((Int8Handler_FrameH +	2) * (Int8Handler_FrameW + 2)) * 2)dup(?)
+    458
+    459	0378			     Int8Handler     endp
+    460
+    461
+    462				     ; void SaveBG(bh: fromRow,	bl: fromCol, ch: toRow,	cl: toCol)
+    463				     ; uses ax,	bx, cx,	dx, si,	di
+    464	0378			     SaveBG	     proc near
+    465	0378  06 1E				     push es ds
+    466
+    467	037A  FE C5				     inc ch
+    468	037C  FE C1				     inc cl
+    469
+    470	037E  53				     push bx
+    471						     Coords2KeyM a, b
 1   472
-    473	037A  5B				     pop bx
-    474
-    475	037B  8B F0				     mov si, ax
-    476	037D  BF 02AFr				     mov di, offset Int8Handler_BG
-    477
-    478	0380  8B D1				     mov dx, cx
-    479	0382  2B D3				     sub dx, bx	 ; actually dl -= bl; dh -= bh
-    480
-    481	0384  FF 36 0525r			     push SetChar_buf
-    482	0388  1E				     push ds
-    483	0389  07				     pop es
-    484	038A  1F				     pop ds
-    485
-    486	038B  FC				     cld
+1   473	037F  A1 0536r				     mov ax, SetChar_width
+1   474	0382  F6 E7				     mul bh
+1   475	0384  32 FF				     xor bh, bh
+1   476	0386  02 C3				     add al, bl
+1   477	0388  80 D4 00				     adc ah, 0
+1   478	038B  D1 E0				     shl ax, 1
+1   479
+    480	038D  5B				     pop bx
+    481
+    482	038E  8B F0				     mov si, ax
+    483	0390  BF 02C2r				     mov di, offset Int8Handler_BG
+    484
+    485	0393  8B D1				     mov dx, cx
+    486	0395  2B D3				     sub dx, bx	 ; actually dl -= bl; dh -= bh
     487
-    488	038C  32 ED				     xor ch, ch
-    489
-    490	038E  84 F6		     SaveBG_loop:    test dh, dh
-    491	0390  74 18				     jz	SaveBG_loop_end
+    488	0397  FF 36 0538r			     push SetChar_buf
+    489	039B  1E				     push ds
+    490	039C  07				     pop es
+    491	039D  1F				     pop ds
     492
-    493	0392  8A CA				     mov cl, dl
+    493	039E  FC				     cld
     494
-    495	0394  F3> A5				     rep movsw
+    495	039F  32 ED				     xor ch, ch
     496
-    497	0396  FE CE				     dec dh
-    498	0398  26: A1 0523r			     mov ax, es:SetChar_width
-    499	039C  D1 E0				     shl ax, 1
-    500	039E  03 F0				     add si, ax
-    501	03A0  32 E4				     xor ah, ah
-    502	03A2  8A C2				     mov al, dl
-    503	03A4  D1 E0				     shl ax, 1
-    504	03A6  2B F0				     sub si, ax
-    505
-    506	03A8  EB E4				     jmp SaveBG_loop
-    507	03AA			     SaveBG_loop_end:
-    508
-    509	03AA  1F 07				     pop ds es
-    510
-    511	03AC  C3				     ret
-    512	03AD			     SaveBG	     endp
-    513
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 10
+    497	03A1  84 F6		     SaveBG_loop:    test dh, dh
+    498	03A3  74 18				     jz	SaveBG_loop_end
+    499
+    500	03A5  8A CA				     mov cl, dl
+    501
+    502	03A7  F3> A5				     rep movsw
+    503
+    504	03A9  FE CE				     dec dh
+    505	03AB  26: A1 0536r			     mov ax, es:SetChar_width
+    506	03AF  D1 E0				     shl ax, 1
+    507	03B1  03 F0				     add si, ax
+    508	03B3  32 E4				     xor ah, ah
+    509	03B5  8A C2				     mov al, dl
+    510	03B7  D1 E0				     shl ax, 1
+    511	03B9  2B F0				     sub si, ax
+    512
+    513	03BB  EB E4				     jmp SaveBG_loop
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 10
 revil.asm
 
 
 
-    514
-    515				     ; void RestoreBG(bh: fromRow, bl: fromCol,	ch: toRow, cl: toCol)
-    516				     ; uses ax,	bx, cx,	dx, si,	di
-    517	03AD			     RestoreBG	     proc near
-    518	03AD  06				     push es
-    519
-    520	03AE  FE C5				     inc ch
-    521	03B0  FE C1				     inc cl
-    522
-    523	03B2  53				     push bx
-    524						     Coords2KeyM a, b
-1   525
-1   526	03B3  A1 0523r				     mov ax, SetChar_width
-1   527	03B6  F6 E7				     mul bh
-1   528	03B8  32 FF				     xor bh, bh
-1   529	03BA  02 C3				     add al, bl
-1   530	03BC  80 D4 00				     adc ah, 0
-1   531	03BF  D1 E0				     shl ax, 1
+    514	03BD			     SaveBG_loop_end:
+    515
+    516	03BD  1F 07				     pop ds es
+    517
+    518	03BF  C3				     ret
+    519	03C0			     SaveBG	     endp
+    520
+    521
+    522				     ; void RestoreBG(bh: fromRow, bl: fromCol,	ch: toRow, cl: toCol)
+    523				     ; uses ax,	bx, cx,	dx, si,	di
+    524	03C0			     RestoreBG	     proc near
+    525	03C0  06				     push es
+    526
+    527	03C1  FE C5				     inc ch
+    528	03C3  FE C1				     inc cl
+    529
+    530	03C5  53				     push bx
+    531						     Coords2KeyM a, b
 1   532
-    533	03C1  5B				     pop bx
-    534
-    535	03C2  BE 02AFr				     mov si, offset Int8Handler_BG
-    536	03C5  8B F8				     mov di, ax
-    537
-    538	03C7  8B D1				     mov dx, cx
-    539	03C9  2B D3				     sub dx, bx	 ; actually dl -= bl; dh -= bh
-    540
-    541	03CB  FF 36 0525r			     push SetChar_buf
-    542	03CF  07				     pop es
-    543
-    544						     ;mov word ptr ds:[si], 7h SHL 8 OR	'!'
-    545						     ;mov byte ptr ds:[si], '!'
-    546
-    547	03D0  FC				     cld
-    548
-    549	03D1  32 ED				     xor ch, ch
+1   533	03C6  A1 0536r				     mov ax, SetChar_width
+1   534	03C9  F6 E7				     mul bh
+1   535	03CB  32 FF				     xor bh, bh
+1   536	03CD  02 C3				     add al, bl
+1   537	03CF  80 D4 00				     adc ah, 0
+1   538	03D2  D1 E0				     shl ax, 1
+1   539
+    540	03D4  5B				     pop bx
+    541
+    542	03D5  BE 02C2r				     mov si, offset Int8Handler_BG
+    543	03D8  8B F8				     mov di, ax
+    544
+    545	03DA  8B D1				     mov dx, cx
+    546	03DC  2B D3				     sub dx, bx	 ; actually dl -= bl; dh -= bh
+    547
+    548	03DE  FF 36 0538r			     push SetChar_buf
+    549	03E2  07				     pop es
     550
-    551	03D3  84 F6		     RestoreBG_loop: test dh, dh
-    552	03D5  74 17				     jz	RestoreBG_loop_end
+    551						     ;mov word ptr ds:[si], 7h SHL 8 OR	'!'
+    552						     ;mov byte ptr ds:[si], '!'
     553
-    554	03D7  8A CA				     mov cl, dl
+    554	03E3  FC				     cld
     555
-    556	03D9  F3> A5				     rep movsw
+    556	03E4  32 ED				     xor ch, ch
     557
-    558	03DB  FE CE				     dec dh
-    559	03DD  A1 0523r				     mov ax, SetChar_width
-    560	03E0  D1 E0				     shl ax, 1
-    561	03E2  03 F8				     add di, ax
-    562	03E4  32 E4				     xor ah, ah
-    563	03E6  8A C2				     mov al, dl
-    564	03E8  D1 E0				     shl ax, 1
-    565	03EA  2B F8				     sub di, ax
-    566
-    567	03EC  EB E5				     jmp RestoreBG_loop
-    568	03EE			     RestoreBG_loop_end:
-    569
-    570	03EE  07				     pop es
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 11
+    558	03E6  84 F6		     RestoreBG_loop: test dh, dh
+    559	03E8  74 17				     jz	RestoreBG_loop_end
+    560
+    561	03EA  8A CA				     mov cl, dl
+    562
+    563	03EC  F3> A5				     rep movsw
+    564
+    565	03EE  FE CE				     dec dh
+    566	03F0  A1 0536r				     mov ax, SetChar_width
+    567	03F3  D1 E0				     shl ax, 1
+    568	03F5  03 F8				     add di, ax
+    569	03F7  32 E4				     xor ah, ah
+    570	03F9  8A C2				     mov al, dl
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 11
 revil.asm
 
 
 
-    571
-    572	03EF  C3				     ret
-    573	03F0			     RestoreBG	     endp
-    574
-    575
-    576				     ; void DrawFrame(bh: fromRow, bl: fromCol,	ch: toRow, cl: toCol)
-    577				     ; uses ax,	bx, cx,	dx, di,	SetChar
-    578	03F0			     DrawFrame	     proc near
-    579
-    580	      =	[bp-1]		     DrawFrame_fromRow	     equ [bp-1]
-    581	      =	[bp-2]		     DrawFrame_fromCol	     equ [bp-2]
-    582	      =	[bp-3]		     DrawFrame_toRow	     equ [bp-3]
-    583	      =	[bp-4]		     DrawFrame_toCol	     equ [bp-4]
-    584
-    585	03F0  55				     push bp
-    586	03F1  8B EC				     mov bp, sp
-    587	03F3  83 EC 04				     sub sp, 4
-    588
-    589	03F6  88 7E FF				     mov DrawFrame_fromRow, bh
-    590	03F9  88 5E FE				     mov DrawFrame_fromCol, bl
-    591	03FC  88 6E FD				     mov DrawFrame_toRow, ch
-    592	03FF  88 4E FC				     mov DrawFrame_toCol, cl
-    593
-    594	0402  B8 0600				     mov ax, 0600h
-    595	0405  8B D1				     mov dx, cx
-    596	0407  8B CB				     mov cx, bx
-    597	0409  B7 1F				     mov bh, FrameStyle
-    598	040B  CD 10				     int 10h
-    599
-    600	040D  B5 1F				     mov ch, FrameStyle
-    601	040F  B1 C9				     mov cl, 201
-    602	0411  8A 7E FF				     mov bh, DrawFrame_fromRow
-    603	0414  8A 5E FE				     mov bl, DrawFrame_fromCol
-    604	0417  E8 00EE				     call SetChar
-    605
-    606	041A  B5 1F				     mov ch, FrameStyle
-    607	041C  B1 BB				     mov cl, 187
-    608	041E  8A 7E FF				     mov bh, DrawFrame_fromRow
-    609	0421  8A 5E FC				     mov bl, DrawFrame_toCol
-    610	0424  E8 00E1				     call SetChar
-    611
-    612	0427  B5 1F				     mov ch, FrameStyle
-    613	0429  B1 BC				     mov cl, 188
-    614	042B  8A 7E FD				     mov bh, DrawFrame_toRow
-    615	042E  8A 5E FC				     mov bl, DrawFrame_toCol
-    616	0431  E8 00D4				     call SetChar
-    617
-    618	0434  B5 1F				     mov ch, FrameStyle
-    619	0436  B1 C8				     mov cl, 200
-    620	0438  8A 7E FD				     mov bh, DrawFrame_toRow
-    621	043B  8A 5E FE				     mov bl, DrawFrame_fromCol
-    622	043E  E8 00C7				     call SetChar
-    623
+    571	03FB  D1 E0				     shl ax, 1
+    572	03FD  2B F8				     sub di, ax
+    573
+    574	03FF  EB E5				     jmp RestoreBG_loop
+    575	0401			     RestoreBG_loop_end:
+    576
+    577	0401  07				     pop es
+    578
+    579	0402  C3				     ret
+    580	0403			     RestoreBG	     endp
+    581
+    582
+    583				     ; void DrawFrame(bh: fromRow, bl: fromCol,	ch: toRow, cl: toCol)
+    584				     ; uses ax,	bx, cx,	dx, di,	SetChar
+    585	0403			     DrawFrame	     proc near
+    586
+    587	      =	[bp-1]		     DrawFrame_fromRow	     equ [bp-1]
+    588	      =	[bp-2]		     DrawFrame_fromCol	     equ [bp-2]
+    589	      =	[bp-3]		     DrawFrame_toRow	     equ [bp-3]
+    590	      =	[bp-4]		     DrawFrame_toCol	     equ [bp-4]
+    591
+    592	0403  55				     push bp
+    593	0404  8B EC				     mov bp, sp
+    594	0406  83 EC 04				     sub sp, 4
+    595
+    596	0409  88 7E FF				     mov DrawFrame_fromRow, bh
+    597	040C  88 5E FE				     mov DrawFrame_fromCol, bl
+    598	040F  88 6E FD				     mov DrawFrame_toRow, ch
+    599	0412  88 4E FC				     mov DrawFrame_toCol, cl
+    600
+    601	0415  B8 0600				     mov ax, 0600h
+    602	0418  8B D1				     mov dx, cx
+    603	041A  8B CB				     mov cx, bx
+    604	041C  B7 1F				     mov bh, FrameStyle
+    605	041E  CD 10				     int 10h
+    606
+    607	0420  B5 1F				     mov ch, FrameStyle
+    608	0422  B1 C9				     mov cl, 201
+    609	0424  8A 7E FF				     mov bh, DrawFrame_fromRow
+    610	0427  8A 5E FE				     mov bl, DrawFrame_fromCol
+    611	042A  E8 00EE				     call SetChar
+    612
+    613	042D  B5 1F				     mov ch, FrameStyle
+    614	042F  B1 BB				     mov cl, 187
+    615	0431  8A 7E FF				     mov bh, DrawFrame_fromRow
+    616	0434  8A 5E FC				     mov bl, DrawFrame_toCol
+    617	0437  E8 00E1				     call SetChar
+    618
+    619	043A  B5 1F				     mov ch, FrameStyle
+    620	043C  B1 BC				     mov cl, 188
+    621	043E  8A 7E FD				     mov bh, DrawFrame_toRow
+    622	0441  8A 5E FC				     mov bl, DrawFrame_toCol
+    623	0444  E8 00D4				     call SetChar
     624
-    625						     ; es is already set by SetChar
-    626	0441  FC				     cld
-    627	0442  32 ED				     xor ch, ch
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 12
+    625	0447  B5 1F				     mov ch, FrameStyle
+    626	0449  B1 C8				     mov cl, 200
+    627	044B  8A 7E FD				     mov bh, DrawFrame_toRow
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 12
 revil.asm
 
 
 
-    628
-    629	0444  8A 4E FC				     mov cl, DrawFrame_toCol
-    630	0447  2A 4E FE				     sub cl, DrawFrame_fromCol
-    631	044A  FE C9				     dec cl
-    632	044C  F6 C1 80				     test cl, 1	SHL 7
-    633	044F  75 44				     jnz DrawFrame_loopH_end
-    634
-    635	0451  8A 5E FE				     mov bl, DrawFrame_fromCol
-    636	0454  8A 7E FF				     mov bh, DrawFrame_fromRow
-    637						     Coords2KeyM a, b
-1   638
-1   639	0457  A1 0523r				     mov ax, SetChar_width
-1   640	045A  F6 E7				     mul bh
-1   641	045C  32 FF				     xor bh, bh
-1   642	045E  02 C3				     add al, bl
-1   643	0460  80 D4 00				     adc ah, 0
-1   644	0463  D1 E0				     shl ax, 1
+    628	044E  8A 5E FE				     mov bl, DrawFrame_fromCol
+    629	0451  E8 00C7				     call SetChar
+    630
+    631
+    632						     ; es is already set by SetChar
+    633	0454  FC				     cld
+    634	0455  32 ED				     xor ch, ch
+    635
+    636	0457  8A 4E FC				     mov cl, DrawFrame_toCol
+    637	045A  2A 4E FE				     sub cl, DrawFrame_fromCol
+    638	045D  FE C9				     dec cl
+    639	045F  F6 C1 80				     test cl, 1	SHL 7
+    640	0462  75 44				     jnz DrawFrame_loopH_end
+    641
+    642	0464  8A 5E FE				     mov bl, DrawFrame_fromCol
+    643	0467  8A 7E FF				     mov bh, DrawFrame_fromRow
+    644						     Coords2KeyM a, b
 1   645
-    646	0465  40				     inc ax
-    647	0466  40				     inc ax
-    648	0467  8B F8				     mov di, ax
-    649
-    650	0469  B4 1F				     mov ah, FrameStyle
-    651	046B  B0 CD				     mov al, 205
-    652
-    653	046D  F3> AB				     rep stosw
-    654
-    655
-    656	046F  8A 4E FC				     mov cl, DrawFrame_toCol
-    657	0472  2A 4E FE				     sub cl, DrawFrame_fromCol
-    658	0475  FE C9				     dec cl
+1   646	046A  A1 0536r				     mov ax, SetChar_width
+1   647	046D  F6 E7				     mul bh
+1   648	046F  32 FF				     xor bh, bh
+1   649	0471  02 C3				     add al, bl
+1   650	0473  80 D4 00				     adc ah, 0
+1   651	0476  D1 E0				     shl ax, 1
+1   652
+    653	0478  40				     inc ax
+    654	0479  40				     inc ax
+    655	047A  8B F8				     mov di, ax
+    656
+    657	047C  B4 1F				     mov ah, FrameStyle
+    658	047E  B0 CD				     mov al, 205
     659
-    660	0477  8A 5E FE				     mov bl, DrawFrame_fromCol
-    661	047A  8A 7E FD				     mov bh, DrawFrame_toRow
-    662						     Coords2KeyM a, b
-1   663
-1   664	047D  A1 0523r				     mov ax, SetChar_width
-1   665	0480  F6 E7				     mul bh
-1   666	0482  32 FF				     xor bh, bh
-1   667	0484  02 C3				     add al, bl
-1   668	0486  80 D4 00				     adc ah, 0
-1   669	0489  D1 E0				     shl ax, 1
+    660	0480  F3> AB				     rep stosw
+    661
+    662
+    663	0482  8A 4E FC				     mov cl, DrawFrame_toCol
+    664	0485  2A 4E FE				     sub cl, DrawFrame_fromCol
+    665	0488  FE C9				     dec cl
+    666
+    667	048A  8A 5E FE				     mov bl, DrawFrame_fromCol
+    668	048D  8A 7E FD				     mov bh, DrawFrame_toRow
+    669						     Coords2KeyM a, b
 1   670
-    671	048B  40				     inc ax
-    672	048C  40				     inc ax
-    673	048D  8B F8				     mov di, ax
-    674
-    675	048F  B4 1F				     mov ah, FrameStyle
-    676	0491  B0 CD				     mov al, 205
-    677
-    678	0493  F3> AB				     rep stosw
-    679
-    680	0495			     DrawFrame_loopH_end:
+1   671	0490  A1 0536r				     mov ax, SetChar_width
+1   672	0493  F6 E7				     mul bh
+1   673	0495  32 FF				     xor bh, bh
+1   674	0497  02 C3				     add al, bl
+1   675	0499  80 D4 00				     adc ah, 0
+1   676	049C  D1 E0				     shl ax, 1
+1   677
+    678	049E  40				     inc ax
+    679	049F  40				     inc ax
+    680	04A0  8B F8				     mov di, ax
     681
-    682	0495  8A 4E FD				     mov cl, DrawFrame_toRow
-    683	0498  2A 4E FF				     sub cl, DrawFrame_fromRow
-    684	049B  FE C9				     dec cl
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 13
+    682	04A2  B4 1F				     mov ah, FrameStyle
+    683	04A4  B0 CD				     mov al, 205
+    684
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 13
 revil.asm
 
 
 
-    685	049D  F6 C1 80				     test cl, 1	SHL 7
-    686	04A0  75 F3				     jnz DrawFrame_loopH_end
-    687
-    688	04A2  8A 5E FE				     mov bl, DrawFrame_fromCol
-    689	04A5  8A 7E FF				     mov bh, DrawFrame_fromRow
-    690	04A8  FE C7				     inc bh
-    691						     Coords2KeyM a, b
-1   692
-1   693	04AA  A1 0523r				     mov ax, SetChar_width
-1   694	04AD  F6 E7				     mul bh
-1   695	04AF  32 FF				     xor bh, bh
-1   696	04B1  02 C3				     add al, bl
-1   697	04B3  80 D4 00				     adc ah, 0
-1   698	04B6  D1 E0				     shl ax, 1
+    685	04A6  F3> AB				     rep stosw
+    686
+    687	04A8			     DrawFrame_loopH_end:
+    688
+    689	04A8  8A 4E FD				     mov cl, DrawFrame_toRow
+    690	04AB  2A 4E FF				     sub cl, DrawFrame_fromRow
+    691	04AE  FE C9				     dec cl
+    692	04B0  F6 C1 80				     test cl, 1	SHL 7
+    693	04B3  75 F3				     jnz DrawFrame_loopH_end
+    694
+    695	04B5  8A 5E FE				     mov bl, DrawFrame_fromCol
+    696	04B8  8A 7E FF				     mov bh, DrawFrame_fromRow
+    697	04BB  FE C7				     inc bh
+    698						     Coords2KeyM a, b
 1   699
-    700
-    701	04B8  8B F8				     mov di, ax
-    702	04BA  A1 0523r				     mov ax, SetChar_width  ; TODO: Change previous macro params instead
-    703	04BD  D1 E0				     shl ax, 1
-    704
-    705	04BF  32 FF				     xor bh, bh
-    706	04C1  8A 5E FC				     mov bl, DrawFrame_toCol
-    707	04C4  2A 5E FE				     sub bl, DrawFrame_fromCol
-    708	04C7  D0 E3				     shl bl, 1
-    709	04C9  73 02				     jnc DrawFrame_loopV
-    710	04CB  32 DB				     xor bl, bl
+1   700	04BD  A1 0536r				     mov ax, SetChar_width
+1   701	04C0  F6 E7				     mul bh
+1   702	04C2  32 FF				     xor bh, bh
+1   703	04C4  02 C3				     add al, bl
+1   704	04C6  80 D4 00				     adc ah, 0
+1   705	04C9  D1 E0				     shl ax, 1
+1   706
+    707
+    708	04CB  8B F8				     mov di, ax
+    709	04CD  A1 0536r				     mov ax, SetChar_width  ; TODO: Change previous macro params instead
+    710	04D0  D1 E0				     shl ax, 1
     711
-    712	04CD			     DrawFrame_loopV:
-    713	04CD  26: C7 05	1FBA			     mov word ptr es:[di],    (FrameStyle SHL 8) OR 186
-    714	04D2  26: C7 01	1FBA			     mov word ptr es:[di+bx], (FrameStyle SHL 8) OR 186
-    715
-    716	04D7  03 F8				     add di, ax
-    717	04D9  E2 F2				     loop DrawFrame_loopV
+    712	04D2  32 FF				     xor bh, bh
+    713	04D4  8A 5E FC				     mov bl, DrawFrame_toCol
+    714	04D7  2A 5E FE				     sub bl, DrawFrame_fromCol
+    715	04DA  D0 E3				     shl bl, 1
+    716	04DC  73 02				     jnc DrawFrame_loopV
+    717	04DE  32 DB				     xor bl, bl
     718
-    719	04DB			     DrawFrame_loopV_end:
-    720
-    721
-    722	04DB  8B E5				     mov sp, bp
-    723	04DD  5D				     pop bp
-    724	04DE  C3				     ret
-    725	04DF			     DrawFrame	     endp
-    726
+    719	04E0			     DrawFrame_loopV:
+    720	04E0  26: C7 05	1FBA			     mov word ptr es:[di],    (FrameStyle SHL 8) OR 186
+    721	04E5  26: C7 01	1FBA			     mov word ptr es:[di+bx], (FrameStyle SHL 8) OR 186
+    722
+    723	04EA  03 F8				     add di, ax
+    724	04EC  E2 F2				     loop DrawFrame_loopV
+    725
+    726	04EE			     DrawFrame_loopV_end:
     727
-    728				     ; void SetCharInit()
-    729				     ; uses: ax, bx, es
-    730	04DF			     SetCharInit     proc near
-    731
-    732	04DF  CD 11				     int 11h
-    733	04E1  35 0030				     xor ax, 30h
-    734	04E4  C1 E0 0B				     shl ax, 11
-    735	04E7  0D B800				     or	ax, VIDEOSEG
-    736	04EA  A3 0525r				     mov SetChar_buf, ax
-    737
-    738	04ED  B8 0040				     mov ax, 40h
-    739	04F0  8E C0				     mov es, ax
-    740	04F2  26: A1 004A			     mov ax, es:4ah  ; 80 most often
-    741	04F6  A3 0523r				     mov SetChar_width,	ax
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 14
+    728
+    729	04EE  8B E5				     mov sp, bp
+    730	04F0  5D				     pop bp
+    731	04F1  C3				     ret
+    732	04F2			     DrawFrame	     endp
+    733
+    734
+    735				     ; void SetCharInit()
+    736				     ; uses: ax, bx, es
+    737	04F2			     SetCharInit     proc near
+    738
+    739	04F2  CD 11				     int 11h
+    740	04F4  35 0030				     xor ax, 30h
+    741	04F7  C1 E0 0B				     shl ax, 11
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 14
 revil.asm
 
 
 
-    742
-    743	04F9  C3				     ret
+    742	04FA  0D B800				     or	ax, VIDEOSEG
+    743	04FD  A3 0538r				     mov SetChar_buf, ax
     744
-    745	04FA			     SetCharInit     endp
-    746
-    747
-    748				     ; Coords2KeyM moved up
+    745	0500  B8 0040				     mov ax, 40h
+    746	0503  8E C0				     mov es, ax
+    747	0505  26: A1 004A			     mov ax, es:4ah  ; 80 most often
+    748	0509  A3 0536r				     mov SetChar_width,	ax
     749
-    750
-    751				     ; ax: coords Coords2Key(bh: row, bl: column)
-    752				     ; uses: ax, (bx), dx
-    753	04FA			     Coords2Key	     proc near
-    754						     Coords2KeyM a, b
-1   755
-1   756	04FA  A1 0523r				     mov ax, SetChar_width
-1   757	04FD  F6 E7				     mul bh
-1   758	04FF  32 FF				     xor bh, bh
-1   759	0501  02 C3				     add al, bl
-1   760	0503  80 D4 00				     adc ah, 0
-1   761	0506  D1 E0				     shl ax, 1
+    750	050C  C3				     ret
+    751
+    752	050D			     SetCharInit     endp
+    753
+    754
+    755				     ; Coords2KeyM moved up
+    756
+    757
+    758				     ; ax: coords Coords2Key(bh: row, bl: column)
+    759				     ; uses: ax, (bx), dx
+    760	050D			     Coords2Key	     proc near
+    761						     Coords2KeyM a, b
 1   762
-    763	0508			     Coords2Key	     endp
-    764
-    765
-    766				     ; ax: index SetChar(cl: letter, ch: attrs,	bh: row, bl: column)
-    767				     ; uses: ax, (bx), (cx), dx, es
-    768	0508			     SetChar	     proc near
-    769	0508  53				     push bx
-    770						     Coords2KeyM a, b
-1   771
-1   772	0509  A1 0523r				     mov ax, SetChar_width
-1   773	050C  F6 E7				     mul bh
-1   774	050E  32 FF				     xor bh, bh
-1   775	0510  02 C3				     add al, bl
-1   776	0512  80 D4 00				     adc ah, 0
-1   777	0515  D1 E0				     shl ax, 1
+1   763	050D  A1 0536r				     mov ax, SetChar_width
+1   764	0510  F6 E7				     mul bh
+1   765	0512  32 FF				     xor bh, bh
+1   766	0514  02 C3				     add al, bl
+1   767	0516  80 D4 00				     adc ah, 0
+1   768	0519  D1 E0				     shl ax, 1
+1   769
+    770	051B			     Coords2Key	     endp
+    771
+    772
+    773				     ; ax: index SetChar(cl: letter, ch: attrs,	bh: row, bl: column)
+    774				     ; uses: ax, (bx), (cx), dx, es
+    775	051B			     SetChar	     proc near
+    776	051B  53				     push bx
+    777						     Coords2KeyM a, b
 1   778
-    779
-    780	0517  93				     xchg ax, bx
-    781
-    782	0518  8B 16 0525r			     mov dx, SetChar_buf
-    783	051C  8E C2				     mov es, dx
-    784	051E  26: 89 0F				     mov es:[bx], cx
-    785
-    786	0521  5B				     pop bx
-    787
-    788	0522  C3				     ret
-    789
-    790	0523  0050		     SetChar_width   dw	80
-    791	0525  0000		     SetChar_buf     dw	0
-    792	0527			     SetChar	     endp
-    793
+1   779	051C  A1 0536r				     mov ax, SetChar_width
+1   780	051F  F6 E7				     mul bh
+1   781	0521  32 FF				     xor bh, bh
+1   782	0523  02 C3				     add al, bl
+1   783	0525  80 D4 00				     adc ah, 0
+1   784	0528  D1 E0				     shl ax, 1
+1   785
+    786
+    787	052A  93				     xchg ax, bx
+    788
+    789	052B  8B 16 0538r			     mov dx, SetChar_buf
+    790	052F  8E C2				     mov es, dx
+    791	0531  26: 89 0F				     mov es:[bx], cx
+    792
+    793	0534  5B				     pop bx
     794
-    795				     ; void Beep(bx: frequency,	cx: length)
-    796				     ; uses ax,	bx, cx
-    797	0527			     Beep	     proc near
-    798	0527  B0 B6				     mov al, 182
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 15
+    795	0535  C3				     ret
+    796
+    797	0536  0050		     SetChar_width   dw	80
+    798	0538  0000		     SetChar_buf     dw	0
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 15
 revil.asm
 
 
 
-    799	0529  E6 43				     out 43h, al
-    800	052B  8B C3				     mov ax, bx
-    801	052D  E6 42				     out 42h, al
-    802	052F  8A C4				     mov al, ah
-    803	0531  E6 42				     out 42h, al
-    804	0533  E4 61				     in	al, 61h
-    805	0535  0C 03				     or	al, 00000011b
-    806	0537  E6 61				     out 61h, al
-    807	0539  8B D9				     mov bx, cx
-    808
-    809
-    810	053B  B9 FFFF		     Beep_pause1:    mov cx, 65535
-    811	053E  49		     Beep_pause2:    dec cx
-    812	053F  75 FD				     jnz Beep_pause2
-    813	0541  4B				     dec bx
-    814	0542  75 F7				     jnz Beep_pause1
-    815	0544  E4 61				     in	al, 61h
-    816	0546  24 FC				     and al, 11111100b
-    817	0548  E6 61				     out 61h, al
-    818
-    819	054A  C3				     ret
-    820	054B			     Beep	     endp
-    821
-    822
-    823				     ; TODO: Maybe use the int 15h 81h
-    824				     ; void Sleep(ax: duration)
-    825				     ; uses ax
-    826	054B			     Sleep	     proc near
-    827
-    828	054B  85 C0		     Sleep_loop:     test ax, ax
-    829	054D  74 03				     jz	Sleep_loop_end
-    830	054F  48				     dec ax
-    831	0550  EB F9				     jmp Sleep_loop
-    832	0552			     Sleep_loop_end:
-    833	0552  C3				     ret
-    834	0553			     Sleep	     endp
-    835
-    836
-    837				     ; void DrawStr(bh:	row, bl: column, cl: length, si: source)
-    838				     ; uses ax,	bx, cx,	si, SetChar
-    839	0553			     DrawStr	     proc near
-    840	      =	[bp-1]		     DrawStr_i	     equ [bp-1]
-    841	      =	[bp-2]		     DrawStr_origCol equ [bp-2]
-    842	0553  55				     push bp
-    843	0554  8B EC				     mov bp, sp
-    844	0556  83 EC 02				     sub sp, 2
-    845
-    846	0559  88 5E FE				     mov DrawStr_origCol, bl
-    847	055C  88 4E FF				     mov DrawStr_i, cl
-    848
-    849	055F  8A 46 FF		     DrawStr_loop:   mov al, DrawStr_i
-    850	0562  84 C0				     test al, al
-    851	0564  74 20				     jz	DrawStr_loop_end
+    799	053A			     SetChar	     endp
+    800
+    801
+    802				     ; void Beep(bx: frequency,	cx: length)
+    803				     ; uses ax,	bx, cx
+    804	053A			     Beep	     proc near
+    805	053A  B0 B6				     mov al, 182
+    806	053C  E6 43				     out 43h, al
+    807	053E  8B C3				     mov ax, bx
+    808	0540  E6 42				     out 42h, al
+    809	0542  8A C4				     mov al, ah
+    810	0544  E6 42				     out 42h, al
+    811	0546  E4 61				     in	al, 61h
+    812	0548  0C 03				     or	al, 00000011b
+    813	054A  E6 61				     out 61h, al
+    814	054C  8B D9				     mov bx, cx
+    815
+    816
+    817	054E  B9 FFFF		     Beep_pause1:    mov cx, 65535
+    818	0551  49		     Beep_pause2:    dec cx
+    819	0552  75 FD				     jnz Beep_pause2
+    820	0554  4B				     dec bx
+    821	0555  75 F7				     jnz Beep_pause1
+    822	0557  E4 61				     in	al, 61h
+    823	0559  24 FC				     and al, 11111100b
+    824	055B  E6 61				     out 61h, al
+    825
+    826	055D  C3				     ret
+    827	055E			     Beep	     endp
+    828
+    829
+    830				     ; TODO: Maybe use the int 15h 81h
+    831				     ; void Sleep(ax: duration)
+    832				     ; uses ax
+    833	055E			     Sleep	     proc near
+    834
+    835	055E  85 C0		     Sleep_loop:     test ax, ax
+    836	0560  74 03				     jz	Sleep_loop_end
+    837	0562  48				     dec ax
+    838	0563  EB F9				     jmp Sleep_loop
+    839	0565			     Sleep_loop_end:
+    840	0565  C3				     ret
+    841	0566			     Sleep	     endp
+    842
+    843
+    844				     ; void DrawStr(bh:	row, bl: column, cl: length, si: source)
+    845				     ; uses ax,	bx, cx,	si, SetChar
+    846	0566			     DrawStr	     proc near
+    847	      =	[bp-1]		     DrawStr_i	     equ [bp-1]
+    848	      =	[bp-2]		     DrawStr_origCol equ [bp-2]
+    849	0566  55				     push bp
+    850	0567  8B EC				     mov bp, sp
+    851	0569  83 EC 02				     sub sp, 2
     852
-    853	0566  8A 0C				     mov cl, [si]
-    854	0568  80 F9 0A				     cmp cl, 0ah
-    855	056B  74 0E				     je	DrawStr_nl
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 16
+    853	056C  88 5E FE				     mov DrawStr_origCol, bl
+    854	056F  88 4E FF				     mov DrawStr_i, cl
+    855
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 16
 revil.asm
 
 
 
-    856
-    857	056D  84 C9				     test cl, cl
-    858	056F  74 15				     jz	DrawStr_loop_end
+    856	0572  8A 46 FF		     DrawStr_loop:   mov al, DrawStr_i
+    857	0575  84 C0				     test al, al
+    858	0577  74 20				     jz	DrawStr_loop_end
     859
-    860	0571  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-    861	0573  E8 FF92				     call SetChar
-    862
-    863	0576  FE C3				     inc bl
-    864
-    865	0578  EB 06 90				     jmp DrawStr_nl_skip
+    860	0579  8A 0C				     mov cl, [si]
+    861	057B  80 F9 0A				     cmp cl, 0ah
+    862	057E  74 0E				     je	DrawStr_nl
+    863
+    864	0580  84 C9				     test cl, cl
+    865	0582  74 15				     jz	DrawStr_loop_end
     866
-    867	057B  8A 5E FE		     DrawStr_nl:     mov bl, DrawStr_origCol
-    868	057E  FE C7				     inc bh
+    867	0584  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+    868	0586  E8 FF92				     call SetChar
     869
-    870	0580			     DrawStr_nl_skip:
-    871	0580  46				     inc si
-    872	0581  FE 4E FF				     dec byte ptr DrawStr_i
-    873	0584  EB D9				     jmp DrawStr_loop
-    874	0586			     DrawStr_loop_end:
-    875
-    876	0586  8B E5				     mov sp, bp
-    877	0588  5D				     pop bp
-    878	0589  C3				     ret
-    879	058A			     DrawStr	     endp
-    880
-    881
-    882				     ; void DrawNum10(ax: num, bh: row,	bl: column)
-    883				     ; uses ax,	bx, cx,	dx, SetChar
-    884	058A			     DrawNum10	     proc near
-    885	058A  80 C3 05				     add bl, 5
-    886
-    887	058D  85 C0		     DrawNum10_loop: test ax, ax
-    888	058F  74 18				     jz	DrawNum10_loop_end
-    889
-    890						     ;aam  ; This is faster than division and more convenient, although	relies on ax+
-    891				     being small enough
-    892	0591  B1 0A				     mov cl, 10
-    893	0593  32 ED				     xor ch, ch
-    894	0595  33 D2				     xor dx, dx
-    895	0597  F7 F1				     div cx
+    870	0589  FE C3				     inc bl
+    871
+    872	058B  EB 06 90				     jmp DrawStr_nl_skip
+    873
+    874	058E  8A 5E FE		     DrawStr_nl:     mov bl, DrawStr_origCol
+    875	0591  FE C7				     inc bh
+    876
+    877	0593			     DrawStr_nl_skip:
+    878	0593  46				     inc si
+    879	0594  FE 4E FF				     dec byte ptr DrawStr_i
+    880	0597  EB D9				     jmp DrawStr_loop
+    881	0599			     DrawStr_loop_end:
+    882
+    883	0599  8B E5				     mov sp, bp
+    884	059B  5D				     pop bp
+    885	059C  C3				     ret
+    886	059D			     DrawStr	     endp
+    887
+    888
+    889				     ; void DrawNum10(ax: num, bh: row,	bl: column)
+    890				     ; uses ax,	bx, cx,	dx, SetChar
+    891	059D			     DrawNum10	     proc near
+    892	059D  80 C3 05				     add bl, 5
+    893
+    894	05A0  85 C0		     DrawNum10_loop: test ax, ax
+    895	05A2  74 18				     jz	DrawNum10_loop_end
     896
-    897	0599  80 C2 30				     add dl, '0'
-    898	059C  8A CA				     mov cl, dl
-    899	059E  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
-    900
-    901	05A0  50				     push ax
-    902	05A1  E8 FF64				     call SetChar
-    903	05A4  58				     pop ax
-    904
-    905	05A5  FE CB				     dec bl
-    906	05A7  EB E4				     jmp DrawNum10_loop
-    907	05A9			     DrawNum10_loop_end:
-    908
-    909	05A9  C3				     ret
-    910	05AA			     DrawNum10	     endp
+    897						     ;aam  ; This is faster than division and more convenient, although	relies on ax+
+    898				     being small enough
+    899	05A4  B1 0A				     mov cl, 10
+    900	05A6  32 ED				     xor ch, ch
+    901	05A8  33 D2				     xor dx, dx
+    902	05AA  F7 F1				     div cx
+    903
+    904	05AC  80 C2 30				     add dl, '0'
+    905	05AF  8A CA				     mov cl, dl
+    906	05B1  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+    907
+    908	05B3  50				     push ax
+    909	05B4  E8 FF64				     call SetChar
+    910	05B7  58				     pop ax
     911
-    912
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 17
+    912	05B8  FE CB				     dec bl
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 17
 revil.asm
 
 
 
-    913				     ; void DrawNumHex(ax: num,	bh: row, bl: column)
-    914				     ; uses ax,	bx, cx,	SetChar
-    915	05AA			     DrawNumHex	     proc near
-    916	05AA  80 C3 04				     add bl, 4
-    917
-    918	05AD			     DrawNumHex_loop:
-    919	05AD  85 C0				     test ax, ax
-    920	05AF  74 21				     jz	DrawNumHex_loop_end
-    921
-    922	05B1  8A C8				     mov cl, al
-    923	05B3  80 E1 0F				     and cl, 0fh
+    913	05BA  EB E4				     jmp DrawNum10_loop
+    914	05BC			     DrawNum10_loop_end:
+    915
+    916	05BC  C3				     ret
+    917	05BD			     DrawNum10	     endp
+    918
+    919
+    920				     ; void DrawNumHex(ax: num,	bh: row, bl: column)
+    921				     ; uses ax,	bx, cx,	SetChar
+    922	05BD			     DrawNumHex	     proc near
+    923	05BD  80 C3 04				     add bl, 4
     924
-    925	05B6  80 F9 0A				     cmp cl, 10
-    926	05B9  73 06				     jae DrawNumHex_bigDigit
-    927
-    928	05BB  80 C1 30				     add cl, '0'
-    929
-    930	05BE  EB 04 90				     jmp DrawNumHex_notBigDigit
-    931	05C1			     DrawNumHex_bigDigit:
-    932	05C1  80 C1 37				     add cl, 'A'-10
-    933	05C4			     DrawNumHex_notBigDigit:
+    925	05C0			     DrawNumHex_loop:
+    926	05C0  85 C0				     test ax, ax
+    927	05C2  74 21				     jz	DrawNumHex_loop_end
+    928
+    929	05C4  8A C8				     mov cl, al
+    930	05C6  80 E1 0F				     and cl, 0fh
+    931
+    932	05C9  80 F9 0A				     cmp cl, 10
+    933	05CC  73 06				     jae DrawNumHex_bigDigit
     934
-    935	05C4  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+    935	05CE  80 C1 30				     add cl, '0'
     936
-    937	05C6  C1 E8 04				     shr ax, 4
-    938
-    939	05C9  50				     push ax
-    940	05CA  E8 FF3B				     call SetChar
-    941	05CD  58				     pop ax
-    942
-    943	05CE  FE CB				     dec bl
-    944	05D0  EB DB				     jmp DrawNumHex_loop
-    945	05D2			     DrawNumHex_loop_end:
-    946
-    947	05D2  C3				     ret
-    948	05D3			     DrawNumHex	     endp
+    937	05D1  EB 04 90				     jmp DrawNumHex_notBigDigit
+    938	05D4			     DrawNumHex_bigDigit:
+    939	05D4  80 C1 37				     add cl, 'A'-10
+    940	05D7			     DrawNumHex_notBigDigit:
+    941
+    942	05D7  B5 14				     mov ch, (FrameStyle AND 11110000b)	OR 0100b
+    943
+    944	05D9  C1 E8 04				     shr ax, 4
+    945
+    946	05DC  50				     push ax
+    947	05DD  E8 FF3B				     call SetChar
+    948	05E0  58				     pop ax
     949
-    950
-    951	05D3			     ProgEnd:
-    952
-    953	05D3			     .data
-    954
-    955	0000  53 6B 69 70 70 69	6E+  SkipMsg	     db	"Skipping installation.", 0ah, 0dh, "$"
-    956	      67 20 69 6E 73 74	61+
-    957	      6C 6C 61 74 69 6F	6E+
-    958	      2E 0A 0D 24
+    950	05E1  FE CB				     dec bl
+    951	05E3  EB DB				     jmp DrawNumHex_loop
+    952	05E5			     DrawNumHex_loop_end:
+    953
+    954	05E5  C3				     ret
+    955	05E6			     DrawNumHex	     endp
+    956
+    957
+    958	05E6			     ProgEnd:
     959
-    960				     end Start
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 18
+    960	05E6			     .data
+    961
+    962	0000  53 6B 69 70 70 69	6E+  SkipMsg	     db	"Skipping installation.", 0ah, 0dh, "$"
+    963	      67 20 69 6E 73 74	61+
+    964	      6C 6C 61 74 69 6F	6E+
+    965	      2E 0A 0D 24
+    966
+    967				     end Start
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 18
 Symbol Table
 
 
@@ -1053,7 +1060,7 @@ Symbol Name			  Type	 Value
 
 ??DATE				  Text	 "02/19/21"
 ??FILENAME			  Text	 "revil	  "
-??TIME				  Text	 "00:12:50"
+??TIME				  Text	 "00:15:40"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -1067,49 +1074,50 @@ Symbol Name			  Type	 Value
 @MODEL				  Text	 1
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
-BEEP				  Near	 DGROUP:0527
-BEEP_PAUSE1			  Near	 DGROUP:053B
-BEEP_PAUSE2			  Near	 DGROUP:053E
-COORDS2KEY			  Near	 DGROUP:04FA
-DRAWFRAME			  Near	 DGROUP:03F0
+BEEP				  Near	 DGROUP:053A
+BEEP_PAUSE1			  Near	 DGROUP:054E
+BEEP_PAUSE2			  Near	 DGROUP:0551
+COORDS2KEY			  Near	 DGROUP:050D
+DRAWFRAME			  Near	 DGROUP:0403
 DRAWFRAME_FROMCOL		  Text	 [bp-2]
 DRAWFRAME_FROMROW		  Text	 [bp-1]
-DRAWFRAME_LOOPH_END		  Near	 DGROUP:0495
-DRAWFRAME_LOOPV			  Near	 DGROUP:04CD
-DRAWFRAME_LOOPV_END		  Near	 DGROUP:04DB
+DRAWFRAME_LOOPH_END		  Near	 DGROUP:04A8
+DRAWFRAME_LOOPV			  Near	 DGROUP:04E0
+DRAWFRAME_LOOPV_END		  Near	 DGROUP:04EE
 DRAWFRAME_TOCOL			  Text	 [bp-4]
 DRAWFRAME_TOROW			  Text	 [bp-3]
-DRAWNUM10			  Near	 DGROUP:058A
-DRAWNUM10_LOOP			  Near	 DGROUP:058D
-DRAWNUM10_LOOP_END		  Near	 DGROUP:05A9
-DRAWNUMHEX			  Near	 DGROUP:05AA
-DRAWNUMHEX_BIGDIGIT		  Near	 DGROUP:05C1
-DRAWNUMHEX_LOOP			  Near	 DGROUP:05AD
-DRAWNUMHEX_LOOP_END		  Near	 DGROUP:05D2
-DRAWNUMHEX_NOTBIGDIGIT		  Near	 DGROUP:05C4
-DRAWSTR				  Near	 DGROUP:0553
+DRAWNUM10			  Near	 DGROUP:059D
+DRAWNUM10_LOOP			  Near	 DGROUP:05A0
+DRAWNUM10_LOOP_END		  Near	 DGROUP:05BC
+DRAWNUMHEX			  Near	 DGROUP:05BD
+DRAWNUMHEX_BIGDIGIT		  Near	 DGROUP:05D4
+DRAWNUMHEX_LOOP			  Near	 DGROUP:05C0
+DRAWNUMHEX_LOOP_END		  Near	 DGROUP:05E5
+DRAWNUMHEX_NOTBIGDIGIT		  Near	 DGROUP:05D7
+DRAWSTR				  Near	 DGROUP:0566
 DRAWSTR_I			  Text	 [bp-1]
-DRAWSTR_LOOP			  Near	 DGROUP:055F
-DRAWSTR_LOOP_END		  Near	 DGROUP:0586
-DRAWSTR_NL			  Near	 DGROUP:057B
-DRAWSTR_NL_SKIP			  Near	 DGROUP:0580
+DRAWSTR_LOOP			  Near	 DGROUP:0572
+DRAWSTR_LOOP_END		  Near	 DGROUP:0599
+DRAWSTR_NL			  Near	 DGROUP:058E
+DRAWSTR_NL_SKIP			  Near	 DGROUP:0593
 DRAWSTR_ORIGCOL			  Text	 [bp-2]
 FRAMESTYLE			  Number 001F
 INT8HANDLER			  Far	 DGROUP:01B8
-INT8HANDLER_BG			  Byte	 DGROUP:02AF
+INT8HANDLER_BG			  Byte	 DGROUP:02C2
 INT8HANDLER_DETACH		  Near	 DGROUP:0244
+INT8HANDLER_DETACH_NOHIDE	  Near	 DGROUP:0268
 INT8HANDLER_DOTICK		  Near	 DGROUP:01D3
 INT8HANDLER_FRAMEE		  Number 060D
 INT8HANDLER_FRAMEEX		  Number 000D
 INT8HANDLER_FRAMEEY		  Number 0006
 INT8HANDLER_FRAMEH		  Number 0005
 INT8HANDLER_FRAMES		  Number 0102
-INT8HANDLER_FRAMESX		  Number 0002
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 19
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 19
 Symbol Table
 
 
 
+INT8HANDLER_FRAMESX		  Number 0002
 INT8HANDLER_FRAMESY		  Number 0001
 INT8HANDLER_FRAMET		  Number 0204
 INT8HANDLER_FRAMETA		  Number 0207
@@ -1118,22 +1126,22 @@ INT8HANDLER_FRAMETC		  Number 0407
 INT8HANDLER_FRAMETD		  Number 0507
 INT8HANDLER_FRAMEW		  Number 000B
 INT8HANDLER_INTERVAL		  Number 0004
-INT8HANDLER_KILL		  Byte	 DGROUP:028B
-INT8HANDLER_LEGEND		  Byte	 DGROUP:028C
+INT8HANDLER_KILL		  Byte	 DGROUP:029E
+INT8HANDLER_LEGEND		  Byte	 DGROUP:029F
 INT8HANDLER_LEGENDLEN		  Number 0023
-INT8HANDLER_MAYBEHIDE		  Near	 DGROUP:0260
+INT8HANDLER_MAYBEHIDE		  Near	 DGROUP:0273
 INT8HANDLER_MAYBESHOW		  Near	 DGROUP:01E7
-INT8HANDLER_NEXT		  Near	 DGROUP:027C
+INT8HANDLER_NEXT		  Near	 DGROUP:028F
 INT8HANDLER_NOTSHOW		  Near	 DGROUP:0200
 INT8HANDLER_OLDA		  Text	 [bp+18]
 INT8HANDLER_OLDB		  Text	 [bp+12]
 INT8HANDLER_OLDC		  Text	 [bp+16]
 INT8HANDLER_OLDD		  Text	 [bp+14]
-INT8HANDLER_OLDOFF		  Word	 DGROUP:0284
-INT8HANDLER_OLDSEG		  Word	 DGROUP:0286
-INT8HANDLER_SHOW		  Byte	 DGROUP:0289
-INT8HANDLER_TICKS		  Byte	 DGROUP:0288
-INT8HANDLER_WASSHOWN		  Byte	 DGROUP:028A
+INT8HANDLER_OLDOFF		  Word	 DGROUP:0297
+INT8HANDLER_OLDSEG		  Word	 DGROUP:0299
+INT8HANDLER_SHOW		  Byte	 DGROUP:029C
+INT8HANDLER_TICKS		  Byte	 DGROUP:029B
+INT8HANDLER_WASSHOWN		  Byte	 DGROUP:029D
 INT9HANDLER			  Far	 DGROUP:015F
 INT9HANDLER_END			  Near	 DGROUP:019A
 INT9HANDLER_NEXT		  Near	 DGROUP:01B0
@@ -1141,22 +1149,22 @@ INT9HANDLER_NUM0		  Near	 DGROUP:0183
 INT9HANDLER_NUM1		  Near	 DGROUP:017C
 INT9HANDLER_OLDOFF		  Word	 DGROUP:01B4
 INT9HANDLER_OLDSEG		  Word	 DGROUP:01B6
-PROGEND				  Near	 DGROUP:05D3
-RESTOREBG			  Near	 DGROUP:03AD
-RESTOREBG_LOOP			  Near	 DGROUP:03D3
-RESTOREBG_LOOP_END		  Near	 DGROUP:03EE
-SAVEBG				  Near	 DGROUP:0365
-SAVEBG_LOOP			  Near	 DGROUP:038E
-SAVEBG_LOOP_END			  Near	 DGROUP:03AA
-SETCHAR				  Near	 DGROUP:0508
-SETCHARINIT			  Near	 DGROUP:04DF
-SETCHAR_BUF			  Word	 DGROUP:0525
-SETCHAR_WIDTH			  Word	 DGROUP:0523
+PROGEND				  Near	 DGROUP:05E6
+RESTOREBG			  Near	 DGROUP:03C0
+RESTOREBG_LOOP			  Near	 DGROUP:03E6
+RESTOREBG_LOOP_END		  Near	 DGROUP:0401
+SAVEBG				  Near	 DGROUP:0378
+SAVEBG_LOOP			  Near	 DGROUP:03A1
+SAVEBG_LOOP_END			  Near	 DGROUP:03BD
+SETCHAR				  Near	 DGROUP:051B
+SETCHARINIT			  Near	 DGROUP:04F2
+SETCHAR_BUF			  Word	 DGROUP:0538
+SETCHAR_WIDTH			  Word	 DGROUP:0536
 SKIPINSTALL			  Near	 DGROUP:0153
 SKIPMSG				  Byte	 DGROUP:0000
-SLEEP				  Near	 DGROUP:054B
-SLEEP_LOOP			  Near	 DGROUP:054B
-SLEEP_LOOP_END			  Near	 DGROUP:0552
+SLEEP				  Near	 DGROUP:055E
+SLEEP_LOOP			  Near	 DGROUP:055E
+SLEEP_LOOP_END			  Near	 DGROUP:0565
 START				  Near	 DGROUP:0100
 VIDEOSEG			  Number B800
 
@@ -1166,7 +1174,7 @@ COORDS2KEYM
 INSTALLIRQ
 NEXTIRQ
 UNINSTALLIRQ
-Turbo Assembler	 Version 4.1	    02/19/21 00:12:51	    Page 20
+Turbo Assembler	 Version 4.1	    02/19/21 00:15:41	    Page 20
 Symbol Table
 
 
@@ -1176,5 +1184,5 @@ Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0019 Word	  Public  DATA
-  _TEXT				  16  05D3 Word	  Public  CODE
+  _TEXT				  16  05E6 Word	  Public  CODE
 

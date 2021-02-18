@@ -286,7 +286,14 @@ Int8Handler_notShow:
 Int8Handler_detach:
 		UninstallIRQ 8
 		
-		; TODO: Hide frame
+		test Int8Handler_show, 1
+		jz Int8Handler_detach_noHide
+		
+		mov bx, Int8Handler_FrameS
+		mov cx, Int8Handler_FrameE
+		call RestoreBG
+		
+Int8Handler_detach_noHide:
 		
 		; TODO: Verify interrupt isn't hijacked and refuse to stop in that case (and same for int8)
 		
