@@ -28,6 +28,21 @@ InstallIRQ	macro number
 		endm
 
 
+CheckIRQ	macro number, labelOverwritten
+		
+		mov ax, 3500h OR number
+		int 21h
+		mov ax, es
+		
+		cmp bx, offset Int&number&Handler
+		jne labelOverwritten
+		mov bx, cs
+		cmp ax, bx
+		jne labelOverwritten
+		
+		endm
+
+
 UninstallIRQ	macro number
 		
 		push ds
@@ -162,8 +177,18 @@ Int9Handler_Num1:
 		jmp Int9Handler_end
 		
 Int9Handler_Num0:
-		UninstallIRQ 9
+		CheckIRQ 9 Int9Handler_overwritten
+		test Int8Handler_kill9, 1
+		jnz Int9Handler_end
 		
+		UninstallIRQ 9
+		mov Int8Handler_kill, 1
+		
+		jmp Int9Handler_end
+		
+Int9Handler_overwritten:
+		
+		mov Int8Handler_kill9, 1
 		mov Int8Handler_kill, 1
 		
 		; Further shutdown happens within timer interrupt
@@ -284,8 +309,6 @@ Int8Handler_notShow:
 		jmp Int8Handler_next
 		
 Int8Handler_detach:
-		UninstallIRQ 8
-		
 		test Int8Handler_show, 1
 		jz Int8Handler_detach_noHide
 		
@@ -293,7 +316,22 @@ Int8Handler_detach:
 		mov cx, Int8Handler_FrameE
 		call RestoreBG
 		
+		; mov Int8Handler_show, 0
+		; mov Int8Handler_wasShown, 0
+		
 Int8Handler_detach_noHide:
+		
+		CheckIRQ 9 Int8Handler_detach_8
+		test Int8Handler_kill9, 1
+		jz Int8Handler_detach_8
+		
+		UninstallIRQ 9
+		
+Int8Handler_detach_8:
+		
+		CheckIRQ 8 Int8Handler_next
+		
+		UninstallIRQ 8
 		
 		; TODO: Verify interrupt isn't hijacked and refuse to stop in that case (and same for int8)
 		
@@ -306,6 +344,8 @@ Int8Handler_detach_noHide:
 		; But even now a disruption is unlikely - that would need the timer to request a memory block (or
 		; start another program, which does that intrinsically), and that doesn't seem like things a timer
 		; would ever want to do.
+		; EDIT: Now that it's in timer, it can't be interrupted
+		;       I guess I could have added a cli as well, but there's no point in that now
 		
 		push es
 		push cs
@@ -343,9 +383,11 @@ Int8Handler_next:
 Int8Handler_interval	equ 4
 Int8Handler_ticks	db 0
 
+; TODO: Compress into a bitmask
 Int8Handler_show	db 0
 Int8Handler_wasShown	db 0
 Int8Handler_kill	db 0
+Int8Handler_kill9	db 0
 
 Int8Handler_Legend	db 'ax: 0000', 0ah, \
 			   'bx: 0000', 0ah, \
