@@ -172,24 +172,25 @@ Int9Handler	proc far
 		jmp Int9Handler_next
 		
 Int9Handler_Num1:
-		xor Int8Handler_show, ah  ; TODO: ?
+		shl ah, Int8Handler_showF
+		xor Int8Handler_flags, ah  ; TODO: ?
 		
 		jmp Int9Handler_end
 		
 Int9Handler_Num0:
 		CheckIRQ 9 Int9Handler_overwritten
-		test Int8Handler_kill9, 1
+		test Int8Handler_flags, 1 SHL Int8Handler_kill9F
 		jnz Int9Handler_end
 		
 		UninstallIRQ 9
-		mov Int8Handler_kill, 1
+		or Int8Handler_flags, 1 SHL Int8Handler_killF
 		
 		jmp Int9Handler_end
 		
 Int9Handler_overwritten:
 		
-		mov Int8Handler_kill9, 1
-		mov Int8Handler_kill, 1
+		or Int8Handler_flags, 1 SHL Int8Handler_kill9F
+		or Int8Handler_flags, 1 SHL Int8Handler_kill9F
 		
 		; Further shutdown happens within timer interrupt
 		
@@ -251,7 +252,7 @@ Int8Handler	proc far
 		mov ds, ax
 		
 		
-		test Int8Handler_kill, 1
+		test Int8Handler_flags, 1 SHL Int8Handler_killF
 		jnz Int8Handler_detach
 		
 		
@@ -265,12 +266,12 @@ Int8Handler_doTick:
 		call SetCharInit  ; I guess we may always call it
 		
 		
-		test Int8Handler_show, 1
+		test Int8Handler_flags, 1 SHL Int8Handler_showF
 		jnz Int8Handler_maybeShow  ; TODO: Restore videobuf
 		jmp Int8Handler_maybeHide
 		
 Int8Handler_maybeShow:
-		test Int8Handler_wasShown, 1
+		test Int8Handler_flags, 1 SHL Int8Handler_wasShownF
 		jnz Int8Handler_notShow
 		
 		; TODO: Save segment under frame
@@ -278,7 +279,7 @@ Int8Handler_maybeShow:
 		mov cx, Int8Handler_FrameE
 		call SaveBG
 		
-		mov Int8Handler_wasShown, 1
+		or Int8Handler_flags, 1 SHL Int8Handler_wasShownF
 		
 Int8Handler_notShow:
 		mov bx, Int8Handler_FrameS
@@ -309,20 +310,20 @@ Int8Handler_notShow:
 		jmp Int8Handler_next
 		
 Int8Handler_detach:
-		test Int8Handler_show, 1
+		test Int8Handler_flags, 1 SHL Int8Handler_showF
 		jz Int8Handler_detach_noHide
 		
 		mov bx, Int8Handler_FrameS
 		mov cx, Int8Handler_FrameE
 		call RestoreBG
 		
-		; mov Int8Handler_show, 0
-		; mov Int8Handler_wasShown, 0
+		; or Int8Handler_flags, 1 SHL Int8Handler_showF
+		; or Int8Handler_flags, 1 SHL Int8Handler_wasShownF
 		
 Int8Handler_detach_noHide:
 		
 		CheckIRQ 9 Int8Handler_detach_8
-		test Int8Handler_kill9, 1
+		test Int8Handler_flags, 1 SHL Int8Handler_kill9F
 		jz Int8Handler_detach_8
 		
 		UninstallIRQ 9
@@ -357,7 +358,7 @@ Int8Handler_detach_8:
 		jmp Int8Handler_next
 		
 Int8Handler_maybeHide:
-		test Int8Handler_wasShown, 1
+		test Int8Handler_flags, 1 SHL Int8Handler_wasShownF
 		jz Int8Handler_next
 		
 		; Restore saved videobuf from under frame
@@ -365,7 +366,7 @@ Int8Handler_maybeHide:
 		mov cx, Int8Handler_FrameE
 		call RestoreBG
 		
-		mov Int8Handler_wasShown, 0
+		and Int8Handler_flags, NOT (1 SHL Int8Handler_wasShownF)
 		
 		jmp Int8Handler_next
 		
@@ -384,10 +385,11 @@ Int8Handler_interval	equ 4
 Int8Handler_ticks	db 0
 
 ; TODO: Compress into a bitmask
-Int8Handler_show	db 0
-Int8Handler_wasShown	db 0
-Int8Handler_kill	db 0
-Int8Handler_kill9	db 0
+Int8Handler_flags	db 0
+Int8Handler_showF	equ 0
+Int8Handler_wasShownF	equ 1
+Int8Handler_killF	equ 2
+Int8Handler_kill9F	equ 3
 
 Int8Handler_Legend	db 'ax: 0000', 0ah, \
 			   'bx: 0000', 0ah, \
