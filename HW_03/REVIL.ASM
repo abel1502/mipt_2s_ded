@@ -190,7 +190,7 @@ Int9Handler_Num0:
 Int9Handler_overwritten:
 		
 		or Int8Handler_flags, 1 SHL Int8Handler_kill9F
-		or Int8Handler_flags, 1 SHL Int8Handler_kill9F
+		or Int8Handler_flags, 1 SHL Int8Handler_killF
 		
 		; Further shutdown happens within timer interrupt
 		
@@ -333,8 +333,6 @@ Int8Handler_detach_8:
 		CheckIRQ 8 Int8Handler_next
 		
 		UninstallIRQ 8
-		
-		; TODO: Verify interrupt isn't hijacked and refuse to stop in that case (and same for int8)
 		
 		; Now I'll do something incredibly crotchy - that is freeing the memory block I reside in.
 		; That clearly contradicts a well-known russian saying "Don't cut the branch you're sitting on",
@@ -622,7 +620,7 @@ DrawFrame_loopH_end:
 		sub cl, DrawFrame_fromRow
 		dec cl
 		test cl, 1 SHL 7
-		jnz DrawFrame_loopH_end
+		jnz DrawFrame_loopV_end
 		
 		mov bl, DrawFrame_fromCol
 		mov bh, DrawFrame_fromRow
