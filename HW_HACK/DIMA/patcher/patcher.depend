@@ -1,0 +1,46 @@
+# depslib dependency file v1.0
+1615740485 source:d:\workspace\.mipt\dos\dosbox\doc\code\hw_hack\dima\patcher\general.cpp
+	<cstdio>
+	<cstdarg>
+	<cerrno>
+	<windows.h>
+	"general.h"
+
+1615740433 d:\workspace\.mipt\dos\dosbox\doc\code\hw_hack\dima\patcher\general.h
+	<new>
+
+1615740481 source:d:\workspace\.mipt\dos\dosbox\doc\code\hw_hack\dima\patcher\main.cpp
+	<cstdio>
+	<cstdlib>
+	<cassert>
+	<getopt.h>
+	<windows.h>
+	"general.h"
+	"patcher.h"
+	"filebuf.h"
+
+1615737970 d:\workspace\.mipt\dos\dosbox\doc\code\hw_hack\dima\patcher\patcher.h
+	<cstdio>
+	"filebuf.h"
+
+1615740327 source:d:\workspace\.mipt\dos\dosbox\doc\code\hw_hack\dima\patcher\patcher.cpp
+	"patcher.h"
+	"general.h"
+	"checksum.h"
+
+1615739150 source:d:\workspace\.mipt\dos\dosbox\doc\code\hw_hack\dima\patcher\filebuf.cpp
+	"filebuf.h"
+	<cassert>
+	<cctype>
+
+1615738620 d:\workspace\.mipt\dos\dosbox\doc\code\hw_hack\dima\patcher\filebuf.h
+	"general.h"
+	<cstdio>
+	<cstdlib>
+	<sys/stat.h>
+
+1615738344 d:\workspace\.mipt\dos\dosbox\doc\code\hw_hack\dima\patcher\checksum.h
+	<cstdint>
+	<cassert>
+	<string.h>
+

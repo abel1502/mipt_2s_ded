@@ -1,0 +1,282 @@
+Turbo Assembler	 Version 4.1	    03/13/21 19:01:26	    Page 1
+crackme.asm
+
+
+
+      1	    0000			 .model	tiny
+      2					 .386
+      3	    0000			 .code
+      4
+      5					 org 100h
+      6	    0100			 Start:
+      7	    0100  E8 002B				 call checkLicense
+      8
+      9	    0103  85 C0					 test ax, ax
+     10	    0105  75 13	90 90				 jnz badLic
+     11
+     12	    0109			 goodLic:
+     13	    0109  B4 40					 mov ah, 40h
+     14	    010B  33 DB					 xor bx, bx
+     15	    010D  43					 inc bx
+     16	    010E  B9 0026 90				 mov cx, GoodMsgLen
+     17	    0112  BA 0016r				 mov dx, offset	GoodMsg
+     18	    0115  CD 21					 int 21h
+     19
+     20	    0117  EB 0F	90				 jmp progEnd
+     21
+     22	    011A			 badLic:
+     23	    011A  B4 40					 mov ah, 40h
+     24	    011C  33 DB					 xor bx, bx
+     25	    011E  43					 inc bx
+     26	    011F  B9 0012 90				 mov cx, BadMsgLen
+     27	    0123  BA 003Cr				 mov dx, offset	BadMsg
+     28	    0126  CD 21					 int 21h
+     29
+     30
+     31	    0128  B8 4C00		 progEnd:	 mov ax, 4c00h
+     32	    012B  CD 21					 int 21h
+     33	    012D  C3					 ret
+     34
+     35
+     36					 ; Non-zero means wrong	license
+     37					 ; bool	checkLicense()
+     38	    012E			 checkLicense	 proc near
+     39
+     40		  =0040			 PasswdBufLen	 equ 40h
+     41		  =		      +	 CharBuf	 equ [bp-2-PasswdBufLen-1]
+     42		  [bp-2-PasswdBufLen-1]
+     43		  = [bp-2-PasswdBufLen]	 PasswdBuf	 equ [bp-2-PasswdBufLen]
+     44		  = [bp-2]		 Canary		 equ [bp-2]
+     45		  =B1AD			 CanaryVal	 equ 0B1ADh
+     46
+     47	    012E  55					 push bp
+     48	    012F  8B EC					 mov bp, sp
+     49	    0131  83 EC	43				 sub sp, PasswdBufLen +	2 + 1
+     50
+     51	    0134  E8 007D				 call randomizeCanary
+     52
+     53	    0137			 Canary_1:	 ; +3
+     54	    0137  C7 46	FE B1AD				 mov word ptr Canary, CanaryVal
+     55
+     56	    013C  8D 7E	BE				 lea di, PasswdBuf
+     57	    013F  E8 0027				 call readPasswd
+Turbo Assembler	 Version 4.1	    03/13/21 19:01:26	    Page 2
+crackme.asm
+
+
+
+     58	    0142  3D 0016 90				 cmp ax, PasswdLen
+     59	    0146  74 08	90 90				 je checkLicense_compare
+     60
+     61	    014A  33 C0					 xor ax, ax
+     62	    014C  40					 inc ax
+     63	    014D  EB 16	90				 jmp checkLicense_end
+     64
+     65	    0150			 checkLicense_compare:
+     66
+     67	    0150  8D 7E	BE				 lea di, PasswdBuf
+     68	    0153  BE 0000r				 mov si, offset	Passwd
+     69	    0156  B9 0016 90				 mov cx, PasswdLen
+     70
+     71	    015A  FC					 cld
+     72	    015B  F3> A6				 repe cmpsb
+     73
+     74	    015D  9F					 lahf
+     75	    015E  F7 D8					 neg ax
+     76	    0160  C1 E8	0E				 shr ax, 6 + 8	; ZF
+     77	    0163  24 01					 and al, 1
+     78
+     79	    0165			 checkLicense_end:
+     80
+     81	    0165  8B E5					 mov sp, bp
+     82	    0167  5D					 pop bp
+     83	    0168  C3					 ret
+     84
+     85	    0169			 checkLicense	 endp
+     86
+     87
+     88					 ; void	readPasswd(di: char *buf)
+     89	    0169			 readPasswd	 proc near
+     90
+     91	    0169  B4 40					 mov ah, 40h
+     92	    016B  33 DB					 xor bx, bx
+     93	    016D  43					 inc bx
+     94	    016E  B9 001C 90				 mov cx, PromptLen
+     95	    0172  BA 0077r				 mov dx, offset	Prompt
+     96	    0175  CD 21					 int 21h
+     97
+     98	    0177  33 DB					 xor bx, bx
+     99	    0179  33 C9					 xor cx, cx
+    100	    017B  41					 inc cx
+    101	    017C  8D 56	BD				 lea dx, CharBuf
+    102
+    103	    017F  57					 push di
+    104
+    105	    0180			 readPasswd_loop:
+    106
+    107	    0180  B4 3F					 mov ah, 3fh
+    108	    0182  CD 21					 int 21h
+    109
+    110	    0184  8A 46	BD				 mov al, [CharBuf]
+    111
+    112	    0187  3C 0A					 cmp al, 0ah  ;	\n
+    113	    0189  74 0B	90 90				 je readPasswd_loop_end
+    114	    018D  3C 0D					 cmp al, 0dh  ;	\r
+Turbo Assembler	 Version 4.1	    03/13/21 19:01:26	    Page 3
+crackme.asm
+
+
+
+    115	    018F  74 05	90 90				 je readPasswd_loop_end
+    116
+    117	    0193  AA					 stosb
+    118
+    119	    0194  EB EA					 jmp readPasswd_loop
+    120
+    121	    0196			 readPasswd_loop_end:
+    122
+    123	    0196  8B 46	FE				 mov ax, Canary
+    124	    0199			 Canary_2:	 ; +1
+    125	    0199  3D B1AD				 cmp ax, CanaryVal
+    126	    019C  74 10	90 90				 je readPasswd_end
+    127
+    128	    01A0  B4 40					 mov ah, 40h
+    129	    01A2  33 DB					 xor bx, bx
+    130	    01A4  43					 inc bx
+    131	    01A5  B9 0029 90				 mov cx, CanaryMsgLen
+    132	    01A9  BA 004Er				 mov dx, offset	CanaryMsg
+    133	    01AC  CD 21					 int 21h
+    134
+    135	    01AE			 readPasswd_end:
+    136	    01AE  58					 pop ax
+    137	    01AF  2B C7					 sub ax, di
+    138	    01B1  F7 D8					 neg ax
+    139
+    140	    01B3  C3					 ret
+    141
+    142	    01B4			 readPasswd	 endp
+    143
+    144
+    145					 ; void	randomizeCanary()
+    146	    01B4			 randomizeCanary proc near
+    147
+    148	    01B4  B4 2C					 mov ah, 2ch
+    149	    01B6  CD 21					 int 21h
+    150
+    151	    01B8  8B C2					 mov ax, dx
+    152	    01BA  C1 E0	07				 shl ax, 7
+    153	    01BD  02 C6					 add al, dh
+    154	    01BF  32 E1					 xor ah, cl
+    155	    01C1  32 C5					 xor al, ch
+    156
+    157	    01C3  A3 013Ar				 mov word ptr [Canary_1	+ 3], ax
+    158	    01C6  A3 019Ar				 mov word ptr [Canary_2	+ 1], ax
+    159
+    160	    01C9  C3					 ret
+    161
+    162	    01CA			 randomizeCanary endp
+    163
+    164
+    165
+    166	    01CA			 .data
+    167
+    168	    0000  54 68	69 73 20 61 69+	 Passwd		 db 'This aint no overflow!'
+    169		  6E 74	20 6E 6F 20 6F+
+    170		  76 65	72 66 6C 6F 77+
+    171		  21
+Turbo Assembler	 Version 4.1	    03/13/21 19:01:26	    Page 4
+crackme.asm
+
+
+
+    172		  =0016			 PasswdLen	 equ $ - Passwd
+    173
+    174	    0016  43 6F	6E 67 72 61 74+	 GoodMsg	 db 'Congratulations, you won, I guess...', 0ah, 0dh
+    175		  75 6C	61 74 69 6F 6E+
+    176		  73 2C	20 79 6F 75 20+
+    177		  77 6F	6E 2C 20 49 20+
+    178		  67 75	65 73 73 2E 2E+
+    179		  2E 0A	0D
+    180		  =0026			 GoodMsgLen	 equ $ - GoodMsg
+    181
+    182	    003C  4E 6F	70 65 2C 20 74+	 BadMsg		 db 'Nope, try again.',	0ah, 0dh
+    183		  72 79	20 61 67 61 69+
+    184		  6E 2E	0A 0D
+    185		  =0012			 BadMsgLen	 equ $ - BadMsg
+    186
+    187	    004E  53 74	61 63 6B 20 73+	 CanaryMsg	 db 'Stack smashing detected (but whatever).', 0ah, 0dh
+    188		  6D 61	73 68 69 6E 67+
+    189		  20 64	65 74 65 63 74+
+    190		  65 64	20 28 62 75 74+
+    191		  20 77	68 61 74 65 76+
+    192		  65 72	29 2E 0A 0D
+    193		  =0029			 CanaryMsgLen	 equ $ - CanaryMsg
+    194
+    195	    0077  50 6C	65 61 73 65 20+	 Prompt		 db 'Please enter your password: '
+    196		  65 6E	74 65 72 20 79+
+    197		  6F 75	72 20 70 61 73+
+    198		  73 77	6F 72 64 3A 20
+    199		  =001C			 PromptLen	 equ $ - Prompt
+    200
+    201
+    202					 end Start
+Turbo Assembler	 Version 4.1	    03/13/21 19:01:26	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/13/21"
+??FILENAME			  Text	 "crackme "
+??TIME				  Text	 "19:01:26"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0F0FH
+@CURSEG				  Text	 _DATA
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 CRACKME
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+BADLIC				  Near	 DGROUP:011A
+BADMSG				  Byte	 DGROUP:003C
+BADMSGLEN			  Number 0012
+CANARY				  Text	 [bp-2]
+CANARYMSG			  Byte	 DGROUP:004E
+CANARYMSGLEN			  Number 0029
+CANARYVAL			  Number B1AD
+CANARY_1			  Near	 DGROUP:0137
+CANARY_2			  Near	 DGROUP:0199
+CHARBUF				  Text	 [bp-2-PasswdBufLen-1]
+CHECKLICENSE			  Near	 DGROUP:012E
+CHECKLICENSE_COMPARE		  Near	 DGROUP:0150
+CHECKLICENSE_END		  Near	 DGROUP:0165
+GOODLIC				  Near	 DGROUP:0109
+GOODMSG				  Byte	 DGROUP:0016
+GOODMSGLEN			  Number 0026
+PASSWD				  Byte	 DGROUP:0000
+PASSWDBUF			  Text	 [bp-2-PasswdBufLen]
+PASSWDBUFLEN			  Number 0040
+PASSWDLEN			  Number 0016
+PROGEND				  Near	 DGROUP:0128
+PROMPT				  Byte	 DGROUP:0077
+PROMPTLEN			  Number 001C
+RANDOMIZECANARY			  Near	 DGROUP:01B4
+READPASSWD			  Near	 DGROUP:0169
+READPASSWD_END			  Near	 DGROUP:01AE
+READPASSWD_LOOP			  Near	 DGROUP:0180
+READPASSWD_LOOP_END		  Near	 DGROUP:0196
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0093 Word	  Public  DATA
+  _TEXT				  16  01CA Word	  Public  CODE
+
